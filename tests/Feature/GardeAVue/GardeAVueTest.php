@@ -50,6 +50,16 @@ class GardeAVueTest extends TestCase
         return Unite::query()->create(['code' => 'U-'.Str::random(4), 'nom' => 'Commissariat', 'type' => 'police', 'ressort_id' => $ressort->id]);
     }
 
+    private function opjDansAutreRessort(): User
+    {
+        $service = Service::query()->create(['code' => 'PJ-'.Str::random(4), 'nom' => 'Police judiciaire', 'type' => 'police']);
+        $ressort = Ressort::query()->create(['code' => 'TRIB-'.Str::random(4), 'nom' => 'Autre tribunal', 'type' => 'tribunal']);
+        $opj = User::factory()->create(['service_id' => $service->id, 'ressort_id' => $ressort->id]);
+        $opj->assignRole('opj');
+
+        return $opj;
+    }
+
     private function affaireAvecInfraction(User $agent, string $categorie): Affaire
     {
         $affaireId = $this->actingAs($agent)->postJson('/api/v1/affaires', [])->json('id');
@@ -102,6 +112,35 @@ class GardeAVueTest extends TestCase
         ]);
 
         $response->assertCreated()->assertJsonPath('mineur', true);
+    }
+
+    public function test_un_agent_hors_ressort_ne_peut_pas_placer_une_mesure_sur_l_affaire(): void
+    {
+        $proprietaire = $this->opj();
+        $affaire = $this->affaireAvecInfraction($proprietaire, 'delit');
+        $personne = Personne::query()->create(['identifiant_unique' => (string) Str::uuid(), 'type' => 'physique', 'nom' => 'Kouassi']);
+
+        $intrus = $this->opjDansAutreRessort();
+
+        $this->actingAs($intrus)->postJson('/api/v1/gav/mesures', [
+            'affaire_id' => $affaire->id,
+            'personne_id' => $personne->id,
+            'unite_id' => $this->unite()->id,
+        ])->assertForbidden();
+    }
+
+    public function test_un_agent_hors_ressort_ne_peut_ni_consulter_ni_cloturer_la_mesure(): void
+    {
+        $proprietaire = $this->opj();
+        $mesure = $this->placerMesure($proprietaire);
+        $intrus = $this->opjDansAutreRessort();
+
+        $this->actingAs($intrus)->getJson("/api/v1/gav/mesures/{$mesure->id}")->assertForbidden();
+        $this->actingAs($intrus)->postJson("/api/v1/gav/mesures/{$mesure->id}/cloturer", ['issue' => 'liberation'])
+            ->assertForbidden();
+
+        // Le propriétaire, lui, agit normalement sur sa propre mesure.
+        $this->actingAs($proprietaire)->getJson("/api/v1/gav/mesures/{$mesure->id}")->assertOk();
     }
 
     public function test_un_droit_ne_peut_pas_etre_notifie_deux_fois(): void

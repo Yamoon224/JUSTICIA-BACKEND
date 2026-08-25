@@ -2,17 +2,15 @@
 
 namespace App\Http\Requests\GardeAVue;
 
+use App\Http\Requests\GardeAVue\Concerns\AutoriseSurRessortDeLaMesure;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProlongerGardeAVueRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        // La prolongation est demandée par l'OPJ mais l'autorisation reste
-        // celle du parquet (§6.1) : voir `autorise_par_id` ci-dessous et
-        // App\Domain\GardeAVue\Actions\ProlongerGardeAVueAction.
-        return $this->user()->can('gav.gerer');
-    }
+    // La prolongation est demandée par l'OPJ mais l'autorisation reste
+    // celle du parquet (§6.1) : voir `autorise_par_id` ci-dessous et
+    // App\Domain\GardeAVue\Actions\ProlongerGardeAVueAction.
+    use AutoriseSurRessortDeLaMesure;
 
     /**
      * @return array<string, mixed>

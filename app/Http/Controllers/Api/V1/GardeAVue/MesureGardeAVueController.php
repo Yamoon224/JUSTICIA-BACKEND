@@ -41,7 +41,10 @@ class MesureGardeAVueController extends Controller
 
     public function show(MesureGardeAVue $mesure): MesureGardeAVueResource
     {
+        // §8 : la permission gav.gerer seule ne suffit pas — elle ouvre
+        // l'accès au module, pas à une mesure d'un autre ressort.
         Gate::authorize('gav.gerer');
+        Gate::authorize('view', $mesure->affaire);
 
         return MesureGardeAVueResource::make($mesure->load(['notificationsDroits', 'actes']));
     }

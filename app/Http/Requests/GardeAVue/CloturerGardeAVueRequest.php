@@ -2,14 +2,12 @@
 
 namespace App\Http\Requests\GardeAVue;
 
+use App\Http\Requests\GardeAVue\Concerns\AutoriseSurRessortDeLaMesure;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CloturerGardeAVueRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return $this->user()->can('gav.gerer');
-    }
+    use AutoriseSurRessortDeLaMesure;
 
     /**
      * @return array<string, mixed>
