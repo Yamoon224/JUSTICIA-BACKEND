@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Affaires\ScelleController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\GardeAVue\MesureGardeAVueController;
 use App\Http\Controllers\Api\V1\Personnes\PersonneController;
+use App\Http\Controllers\Api\V1\Referentiels\ReferentielController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +26,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+        // §6.13 — Référentiels (lecture seule, pour les listes de choix).
+        Route::get('/referentiels/infractions', [ReferentielController::class, 'infractions'])->name('referentiels.infractions');
+        Route::get('/referentiels/unites', [ReferentielController::class, 'unites'])->name('referentiels.unites');
 
         // §6.2 — Identification des personnes.
         Route::get('/personnes', [PersonneController::class, 'index'])->name('personnes.index');
