@@ -27,6 +27,10 @@ class DecisionResource extends JsonResource
             'delai_recours_expire_at' => $this->delai_recours_expire_at->toIso8601String(),
             'est_definitive' => $this->estDefinitive(),
             'recours' => RecoursResource::collection($this->whenLoaded('recours')),
+            'dossier_execution_id' => $this->when(
+                $this->relationLoaded('dossierExecution'),
+                fn () => $this->dossierExecution?->id,
+            ),
         ];
     }
 }

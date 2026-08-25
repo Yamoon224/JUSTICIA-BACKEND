@@ -53,7 +53,7 @@ class DossierAudiencementController extends Controller
         Gate::authorize('view', $dossier);
 
         return DossierAudiencementResource::make(
-            $dossier->load(['affaire.infractions', 'affaire.personnes', 'renvois', 'decisions.recours']),
+            $dossier->load(['affaire.infractions', 'affaire.personnes', 'renvois', 'decisions.recours', 'decisions.dossierExecution']),
         );
     }
 
