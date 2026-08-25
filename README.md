@@ -23,8 +23,12 @@ Sanctum (auth par token) · spatie/laravel-permission (rôles/habilitations).
   chaîne de conservation), garde à vue (délais résolus depuis le
   référentiel, régime mineur automatique, moteur d'alertes) — voir
   `app/Domain/{GardeAVue,Personnes,Affaires}`.
-- ⏳ Phases 4 à 9 (Parquet, Instruction, Jugement, Exécution, Casier,
-  Statistiques, Recette, Pilote) : à venir.
+- ✅ **Phase 4 — Parquet** (§6.5) : bureau des arrivées (réception
+  automatique à la transmission), affectation à un magistrat, orientation
+  des poursuites (7 issues, motif obligatoire pour un classement),
+  réquisitions — voir `app/Domain/Parquet`.
+- ⏳ Phases 5 à 9 (Instruction, Jugement, Exécution, Casier, Statistiques,
+  Recette, Pilote) : à venir.
 
 ## Démarrage
 

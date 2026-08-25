@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api\V1\Referentiels;
 
 use App\Http\Controllers\Controller;
 use App\Models\Infraction;
+use App\Models\MotifClassement;
 use App\Models\Unite;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Lecture seule des référentiels nationaux (§6.13) nécessaires à la saisie
@@ -34,5 +37,27 @@ class ReferentielController extends Controller
             ->get(['id', 'code', 'nom', 'type', 'ressort_id']);
 
         return response()->json($unites);
+    }
+
+    public function motifsClassement(): JsonResponse
+    {
+        return response()->json(MotifClassement::query()->orderBy('libelle')->get(['id', 'code', 'libelle']));
+    }
+
+    /**
+     * Magistrats du parquet du ressort de l'agent, pour l'affectation des
+     * dossiers au bureau des arrivées (§6.5).
+     */
+    public function magistrats(Request $request): JsonResponse
+    {
+        $agent = $request->user();
+
+        $magistrats = User::query()
+            ->role('procureur')
+            ->when(! $agent->can('administration.gerer'), fn ($q) => $q->where('ressort_id', $agent->ressort_id))
+            ->orderBy('nom')
+            ->get(['id', 'matricule', 'nom', 'prenom']);
+
+        return response()->json($magistrats);
     }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Affaires\ProcesVerbalController;
 use App\Http\Controllers\Api\V1\Affaires\ScelleController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\GardeAVue\MesureGardeAVueController;
+use App\Http\Controllers\Api\V1\Parquet\DossierParquetController;
 use App\Http\Controllers\Api\V1\Personnes\PersonneController;
 use App\Http\Controllers\Api\V1\Referentiels\ReferentielController;
 use Illuminate\Support\Facades\Route;
@@ -16,8 +17,7 @@ use Illuminate\Support\Facades\Route;
 |
 | Consommée exclusivement par les interfaces « Web » (NextJS). Chaque
 | module métier enregistre ses routes ici sous le même préfixe versionné.
-| Restent à venir (Phases 4+) : parquet, instruction, audiencement,
-| exécution, casier.
+| Restent à venir (Phases 5+) : instruction, audiencement, exécution, casier.
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -30,6 +30,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // §6.13 — Référentiels (lecture seule, pour les listes de choix).
         Route::get('/referentiels/infractions', [ReferentielController::class, 'infractions'])->name('referentiels.infractions');
         Route::get('/referentiels/unites', [ReferentielController::class, 'unites'])->name('referentiels.unites');
+        Route::get('/referentiels/motifs-classement', [ReferentielController::class, 'motifsClassement'])->name('referentiels.motifs-classement');
+        Route::get('/referentiels/magistrats', [ReferentielController::class, 'magistrats'])->name('referentiels.magistrats');
 
         // §6.2 — Identification des personnes.
         Route::get('/personnes', [PersonneController::class, 'index'])->name('personnes.index');
@@ -61,5 +63,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/gav/mesures/{mesure}/avis-representant-legal', [MesureGardeAVueController::class, 'aviserRepresentantLegal'])->name('gav.mesures.avis-representant-legal');
         Route::post('/gav/mesures/{mesure}/actes', [MesureGardeAVueController::class, 'enregistrerActe'])->name('gav.mesures.actes.store');
         Route::post('/gav/mesures/{mesure}/cloturer', [MesureGardeAVueController::class, 'cloturer'])->name('gav.mesures.cloturer');
+
+        // §6.5 — Parquet : bureau des arrivées et orientation des poursuites.
+        Route::get('/parquet/dossiers', [DossierParquetController::class, 'index'])->name('parquet.dossiers.index');
+        Route::get('/parquet/dossiers/{dossier}', [DossierParquetController::class, 'show'])->name('parquet.dossiers.show');
+        Route::post('/parquet/dossiers/{dossier}/affecter', [DossierParquetController::class, 'affecter'])->name('parquet.dossiers.affecter');
+        Route::post('/parquet/dossiers/{dossier}/orienter', [DossierParquetController::class, 'orienter'])->name('parquet.dossiers.orienter');
+        Route::post('/parquet/dossiers/{dossier}/requisitions', [DossierParquetController::class, 'enregistrerRequisition'])->name('parquet.dossiers.requisitions.store');
     });
 });

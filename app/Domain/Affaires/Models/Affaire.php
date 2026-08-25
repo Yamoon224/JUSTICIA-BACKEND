@@ -3,6 +3,7 @@
 namespace App\Domain\Affaires\Models;
 
 use App\Domain\Contracts\Auditable;
+use App\Domain\Parquet\Models\DossierParquet;
 use App\Domain\Personnes\Models\Personne;
 use App\Models\Infraction;
 use App\Models\Ressort;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Dossier d'affaire (§6.3) : numéro unique conservé de bout en bout. Le
@@ -104,6 +106,14 @@ class Affaire extends Model implements Auditable
     public function creePar(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * @return HasOne<DossierParquet, $this>
+     */
+    public function dossierParquet(): HasOne
+    {
+        return $this->hasOne(DossierParquet::class);
     }
 
     public function auditableRepresentation(): array

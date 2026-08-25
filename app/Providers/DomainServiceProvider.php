@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Domain\Affaires\Models\Affaire;
 use App\Domain\Contracts\Horodatable;
+use App\Domain\Parquet\Models\DossierParquet;
 use App\Domain\Personnes\Models\Personne;
 use App\Domain\Support\HorodatageService;
 use App\Policies\AffairePolicy;
+use App\Policies\DossierParquetPolicy;
 use App\Policies\PersonnePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -28,6 +30,7 @@ class DomainServiceProvider extends ServiceProvider
     protected $policies = [
         Personne::class => PersonnePolicy::class,
         Affaire::class => AffairePolicy::class,
+        DossierParquet::class => DossierParquetPolicy::class,
     ];
 
     public function register(): void
