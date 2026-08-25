@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\DelaiLegal;
 use App\Models\Infraction;
+use App\Models\Juridiction;
 use App\Models\MotifClassement;
 use App\Models\Ressort;
 use App\Models\Service;
@@ -25,6 +26,10 @@ class ReferentielsSeeder extends Seeder
         $tribunal = Ressort::query()->create(['code' => 'TRIB-01', 'nom' => 'Tribunal de première instance pilote', 'type' => 'tribunal', 'parent_id' => $courAppel->id]);
 
         Unite::query()->create(['code' => 'UNITE-01', 'nom' => 'Commissariat central pilote', 'type' => 'police', 'ressort_id' => $tribunal->id]);
+
+        // §6.7 : juridiction de jugement du ressort — nécessaire à
+        // l'enrôlement (App\Domain\Audiencement\Actions\EnrolerAffaireAction).
+        Juridiction::query()->create(['code' => 'TPI-01', 'nom' => 'Tribunal de première instance pilote', 'type' => 'tribunal', 'ressort_id' => $tribunal->id]);
 
         collect([
             ['code' => 'PJ', 'nom' => 'Police judiciaire', 'type' => 'police'],

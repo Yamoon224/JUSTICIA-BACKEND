@@ -3,9 +3,11 @@
 namespace Tests\Feature\Referentiels;
 
 use App\Models\Infraction;
+use App\Models\Juridiction;
 use App\Models\Ressort;
 use App\Models\Unite;
 use App\Models\User;
+use Database\Seeders\ReferentielsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,5 +47,28 @@ class ReferentielTest extends TestCase
         $response = $this->actingAs($agent)->getJson('/api/v1/referentiels/unites');
 
         $response->assertOk()->assertJsonFragment(['code' => 'U1']);
+    }
+
+    public function test_les_juridictions_sont_listees(): void
+    {
+        $ressort = Ressort::query()->create(['code' => 'R2', 'nom' => 'Ressort', 'type' => 'tribunal']);
+        $agent = User::factory()->create(['ressort_id' => $ressort->id]);
+        Juridiction::query()->create(['code' => 'J1', 'nom' => 'Tribunal pilote', 'ressort_id' => $ressort->id]);
+
+        $response = $this->actingAs($agent)->getJson('/api/v1/referentiels/juridictions');
+
+        $response->assertOk()->assertJsonFragment(['code' => 'J1']);
+    }
+
+    /**
+     * §6.7 : l'enrôlement (EnrolerAffaireAction) exige une juridiction —
+     * un référentiel de démonstration sans aucune juridiction rendrait le
+     * module Audiencement inutilisable dès l'installation.
+     */
+    public function test_le_seed_de_demonstration_fournit_au_moins_une_juridiction(): void
+    {
+        $this->seed(ReferentielsSeeder::class);
+
+        $this->assertGreaterThan(0, Juridiction::query()->count());
     }
 }
