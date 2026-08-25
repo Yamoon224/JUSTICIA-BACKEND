@@ -84,5 +84,28 @@ class ReferentielsSeeder extends Seeder
             'alerte_avant_minutes' => 30,
             'date_entree_vigueur' => $today,
         ]));
+
+        // §6.6, §6.11 : détention provisoire, exceptionnelle et strictement
+        // limitée dans le temps — valeurs d'exemple à valider par la
+        // chancellerie avant recette.
+        collect([
+            ['code' => 'DP_DELIT', 'categorie_infraction' => 'delit', 'duree_jours' => 120],
+            ['code' => 'DP_CRIME', 'categorie_infraction' => 'crime', 'duree_jours' => 365],
+        ])->each(fn (array $delai) => DelaiLegal::query()->create([
+            ...$delai,
+            'libelle' => "Détention provisoire — {$delai['categorie_infraction']}",
+            'type_acte' => 'detention_provisoire',
+            'alerte_avant_heures' => 15 * 24,
+            'date_entree_vigueur' => $today,
+        ]));
+
+        // §6.7 : délai de recours contre une ordonnance de règlement.
+        DelaiLegal::query()->create([
+            'code' => 'RECOURS_ORDONNANCE',
+            'libelle' => 'Recours contre une ordonnance de règlement',
+            'type_acte' => 'ordonnance_reglement',
+            'duree_jours' => 10,
+            'date_entree_vigueur' => $today,
+        ]);
     }
 }

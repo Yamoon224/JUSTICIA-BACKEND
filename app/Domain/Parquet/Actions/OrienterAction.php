@@ -4,6 +4,7 @@ namespace App\Domain\Parquet\Actions;
 
 use App\Domain\Audit\AuditService;
 use App\Domain\Contracts\Horodatable;
+use App\Domain\Instruction\Models\DossierInstruction;
 use App\Domain\Parquet\Models\DossierParquet;
 use App\Models\MotifClassement;
 use App\Models\User;
@@ -12,11 +13,13 @@ use InvalidArgumentException;
 
 /**
  * Orientation des poursuites (§6.5) : décision du magistrat, jamais
- * automatique (§3). Répercute sur l'affaire les deux issues qui sortent
- * définitivement du périmètre parquet à ce stade — classement sans suite et
- * ouverture d'information (§6.3, statut `affaires`). Les autres orientations
- * (citation directe, comparution immédiate, composition, médiation, rappel
- * à la loi) seront reliées à leurs modules propres en Phase 5.
+ * automatique (§3). Répercute sur l'affaire les issues qui sortent
+ * définitivement du périmètre parquet à ce stade — classement sans suite
+ * (§6.3, statut `affaires`) et ouverture d'information, qui ouvre aussitôt
+ * le dossier d'information correspondant (§6.6, module Instruction). Les
+ * autres orientations (citation directe, comparution immédiate,
+ * composition, médiation, rappel à la loi) seront reliées à
+ * l'audiencement en Phase 5.
  */
 class OrienterAction
 {
@@ -75,6 +78,13 @@ class OrienterAction
 
             if ($nouveauStatut = self::TRANSITIONS_AFFAIRE[$orientation] ?? null) {
                 $dossier->affaire->update(['statut' => $nouveauStatut]);
+            }
+
+            if ($orientation === 'ouverture_information') {
+                DossierInstruction::query()->create([
+                    'affaire_id' => $dossier->affaire_id,
+                    'ouvert_at' => $this->horodatage->maintenant(),
+                ]);
             }
         });
 

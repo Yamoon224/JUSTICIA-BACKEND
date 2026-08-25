@@ -7,6 +7,7 @@ use App\Models\Infraction;
 use App\Models\MotifClassement;
 use App\Models\Unite;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -50,14 +51,29 @@ class ReferentielController extends Controller
      */
     public function magistrats(Request $request): JsonResponse
     {
+        return response()->json($this->agentsAyantLeRole('procureur', $request));
+    }
+
+    /**
+     * Juges d'instruction du ressort de l'agent, pour l'affectation des
+     * dossiers d'information (§6.6).
+     */
+    public function jugesInstruction(Request $request): JsonResponse
+    {
+        return response()->json($this->agentsAyantLeRole('juge_instruction', $request));
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    private function agentsAyantLeRole(string $role, Request $request): Collection
+    {
         $agent = $request->user();
 
-        $magistrats = User::query()
-            ->role('procureur')
+        return User::query()
+            ->role($role)
             ->when(! $agent->can('administration.gerer'), fn ($q) => $q->where('ressort_id', $agent->ressort_id))
             ->orderBy('nom')
             ->get(['id', 'matricule', 'nom', 'prenom']);
-
-        return response()->json($magistrats);
     }
 }

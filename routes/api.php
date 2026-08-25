@@ -5,6 +5,10 @@ use App\Http\Controllers\Api\V1\Affaires\ProcesVerbalController;
 use App\Http\Controllers\Api\V1\Affaires\ScelleController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\GardeAVue\MesureGardeAVueController;
+use App\Http\Controllers\Api\V1\Instruction\ActeInstructionController;
+use App\Http\Controllers\Api\V1\Instruction\DossierInstructionController;
+use App\Http\Controllers\Api\V1\Instruction\MandatController;
+use App\Http\Controllers\Api\V1\Instruction\MesureSureteController;
 use App\Http\Controllers\Api\V1\Parquet\DossierParquetController;
 use App\Http\Controllers\Api\V1\Personnes\PersonneController;
 use App\Http\Controllers\Api\V1\Referentiels\ReferentielController;
@@ -17,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 |
 | Consommée exclusivement par les interfaces « Web » (NextJS). Chaque
 | module métier enregistre ses routes ici sous le même préfixe versionné.
-| Restent à venir (Phases 5+) : instruction, audiencement, exécution, casier.
+| Restent à venir (Phases 5+) : audiencement, exécution, casier.
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -32,6 +36,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/referentiels/unites', [ReferentielController::class, 'unites'])->name('referentiels.unites');
         Route::get('/referentiels/motifs-classement', [ReferentielController::class, 'motifsClassement'])->name('referentiels.motifs-classement');
         Route::get('/referentiels/magistrats', [ReferentielController::class, 'magistrats'])->name('referentiels.magistrats');
+        Route::get('/referentiels/juges-instruction', [ReferentielController::class, 'jugesInstruction'])->name('referentiels.juges-instruction');
 
         // §6.2 — Identification des personnes.
         Route::get('/personnes', [PersonneController::class, 'index'])->name('personnes.index');
@@ -70,5 +75,21 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/parquet/dossiers/{dossier}/affecter', [DossierParquetController::class, 'affecter'])->name('parquet.dossiers.affecter');
         Route::post('/parquet/dossiers/{dossier}/orienter', [DossierParquetController::class, 'orienter'])->name('parquet.dossiers.orienter');
         Route::post('/parquet/dossiers/{dossier}/requisitions', [DossierParquetController::class, 'enregistrerRequisition'])->name('parquet.dossiers.requisitions.store');
+
+        // §6.6 — Instruction : dossier d'information, actes, mandats, mesures de sûreté.
+        Route::get('/instruction/dossiers', [DossierInstructionController::class, 'index'])->name('instruction.dossiers.index');
+        Route::get('/instruction/dossiers/{dossier}', [DossierInstructionController::class, 'show'])->name('instruction.dossiers.show');
+        Route::post('/instruction/dossiers/{dossier}/affecter', [DossierInstructionController::class, 'affecter'])->name('instruction.dossiers.affecter');
+        Route::post('/instruction/dossiers/{dossier}/mise-en-examen', [DossierInstructionController::class, 'mettreEnExamen'])->name('instruction.dossiers.mise-en-examen');
+        Route::post('/instruction/dossiers/{dossier}/actes', [DossierInstructionController::class, 'enregistrerActe'])->name('instruction.dossiers.actes.store');
+        Route::post('/instruction/dossiers/{dossier}/mandats', [DossierInstructionController::class, 'emettreMandat'])->name('instruction.dossiers.mandats.store');
+        Route::post('/instruction/dossiers/{dossier}/controle-judiciaire', [DossierInstructionController::class, 'placerSousControleJudiciaire'])->name('instruction.dossiers.controle-judiciaire');
+        Route::post('/instruction/dossiers/{dossier}/detention-provisoire', [DossierInstructionController::class, 'placerEnDetentionProvisoire'])->name('instruction.dossiers.detention-provisoire');
+        Route::post('/instruction/dossiers/{dossier}/ordonnance', [DossierInstructionController::class, 'rendreOrdonnance'])->name('instruction.dossiers.ordonnance');
+
+        Route::post('/instruction/actes/{acte}/statut', [ActeInstructionController::class, 'mettreAJour'])->name('instruction.actes.statut');
+        Route::post('/instruction/mandats/{mandat}/etape', [MandatController::class, 'mettreAJour'])->name('instruction.mandats.etape');
+        Route::post('/instruction/mesures-surete/{mesure}/renouveler', [MesureSureteController::class, 'renouveler'])->name('instruction.mesures-surete.renouveler');
+        Route::post('/instruction/mesures-surete/{mesure}/lever', [MesureSureteController::class, 'lever'])->name('instruction.mesures-surete.lever');
     });
 });
