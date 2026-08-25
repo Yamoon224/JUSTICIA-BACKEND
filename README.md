@@ -18,7 +18,10 @@ Sanctum (auth par token) · spatie/laravel-permission (rôles/habilitations).
 - ✅ **Phase 2 — Socle technique** : auth, habilitations par rôle/ressort,
   référentiels de base, journal d'audit inviolable (append-only, scellé par
   chaînage cryptographique).
-- 🚧 **Phase 3 — Enquête & garde à vue** (§6.1-6.4) : en cours — voir
+- ✅ **Phase 3 — Enquête & garde à vue** (§6.1-6.4) : personnes (fichier
+  central, fusion tracée), affaires (dossier, PV immuables, scellés avec
+  chaîne de conservation), garde à vue (délais résolus depuis le
+  référentiel, régime mineur automatique, moteur d'alertes) — voir
   `app/Domain/{GardeAVue,Personnes,Affaires}`.
 - ⏳ Phases 4 à 9 (Parquet, Instruction, Jugement, Exécution, Casier,
   Statistiques, Recette, Pilote) : à venir.
