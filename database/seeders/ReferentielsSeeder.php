@@ -2,11 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\DelaiLegal;
 use App\Models\Infraction;
 use App\Models\MotifClassement;
 use App\Models\Ressort;
 use App\Models\Service;
 use App\Models\TypePeine;
+use App\Models\Unite;
 use Illuminate\Database\Seeder;
 
 /**
@@ -20,7 +22,9 @@ class ReferentielsSeeder extends Seeder
     {
         $national = Ressort::query()->create(['code' => 'NAT', 'nom' => 'Ressort national', 'type' => 'national']);
         $courAppel = Ressort::query()->create(['code' => 'CA-01', 'nom' => "Cour d'appel pilote", 'type' => 'cour_appel', 'parent_id' => $national->id]);
-        Ressort::query()->create(['code' => 'TRIB-01', 'nom' => 'Tribunal de première instance pilote', 'type' => 'tribunal', 'parent_id' => $courAppel->id]);
+        $tribunal = Ressort::query()->create(['code' => 'TRIB-01', 'nom' => 'Tribunal de première instance pilote', 'type' => 'tribunal', 'parent_id' => $courAppel->id]);
+
+        Unite::query()->create(['code' => 'UNITE-01', 'nom' => 'Commissariat central pilote', 'type' => 'police', 'ressort_id' => $tribunal->id]);
 
         collect([
             ['code' => 'PJ', 'nom' => 'Police judiciaire', 'type' => 'police'],
@@ -64,5 +68,21 @@ class ReferentielsSeeder extends Seeder
             ['code' => 'INTERDICTION_PROFESSIONNELLE', 'libelle' => 'Interdiction professionnelle', 'categorie' => 'complementaire'],
             ['code' => 'DISPENSE_DE_PEINE', 'libelle' => 'Dispense de peine', 'categorie' => 'dispense'],
         ])->each(fn (array $type) => TypePeine::query()->create($type));
+
+        // §6.1, §6.11 : durées légales de garde à vue par catégorie
+        // d'infraction, avec seuils d'alerte (2h / 30 min avant échéance).
+        // Valeurs d'exemple à valider par la chancellerie avant recette.
+        collect([
+            ['code' => 'GAV_CONTRAVENTION', 'categorie_infraction' => 'contravention', 'duree_heures' => 24],
+            ['code' => 'GAV_DELIT', 'categorie_infraction' => 'delit', 'duree_heures' => 48],
+            ['code' => 'GAV_CRIME', 'categorie_infraction' => 'crime', 'duree_heures' => 96],
+        ])->each(fn (array $delai) => DelaiLegal::query()->create([
+            ...$delai,
+            'libelle' => "Garde à vue — {$delai['categorie_infraction']}",
+            'type_acte' => 'garde_a_vue',
+            'alerte_avant_heures' => 2,
+            'alerte_avant_minutes' => 30,
+            'date_entree_vigueur' => $today,
+        ]));
     }
 }

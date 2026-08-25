@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class DelaiLegal extends Model
 {
+    // La pluralisation par défaut d'Eloquent donnerait "delai_legals".
+    protected $table = 'delais_legaux';
+
     protected function casts(): array
     {
         return [

@@ -2,19 +2,41 @@
 
 namespace App\Providers;
 
+use App\Domain\Affaires\Models\Affaire;
 use App\Domain\Contracts\Horodatable;
+use App\Domain\Personnes\Models\Personne;
 use App\Domain\Support\HorodatageService;
-use Illuminate\Support\ServiceProvider;
+use App\Policies\AffairePolicy;
+use App\Policies\PersonnePolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 /**
  * Lie les contrats de domaine (§10.1-D) à leurs implémentations techniques
  * par défaut. Le cœur procédural dépend des interfaces sous
  * App\Domain\Contracts, jamais de ces implémentations directement.
+ *
+ * Enregistre aussi explicitement les Policies des modèles de domaine : la
+ * convention de découverte automatique de Laravel (App\Models\X →
+ * App\Policies\XPolicy) ne s'applique pas à nos modèles rangés sous
+ * App\Domain\<Module>\Models.
  */
 class DomainServiceProvider extends ServiceProvider
 {
+    /**
+     * @var array<class-string, class-string>
+     */
+    protected $policies = [
+        Personne::class => PersonnePolicy::class,
+        Affaire::class => AffairePolicy::class,
+    ];
+
     public function register(): void
     {
         $this->app->bind(Horodatable::class, HorodatageService::class);
+    }
+
+    public function boot(): void
+    {
+        $this->registerPolicies();
     }
 }

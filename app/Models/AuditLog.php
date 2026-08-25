@@ -15,7 +15,7 @@ use LogicException;
 #[Fillable([
     'uuid', 'user_id', 'action', 'auditable_type', 'auditable_id',
     'ressort_id', 'motif', 'ip_address', 'user_agent', 'payload',
-    'previous_hash', 'hash',
+    'previous_hash', 'hash', 'created_at',
 ])]
 class AuditLog extends Model
 {
