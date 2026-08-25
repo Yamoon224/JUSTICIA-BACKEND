@@ -27,6 +27,13 @@ class AffecterMagistratAction
             throw new InvalidArgumentException('Ce dossier est déjà orienté ; il ne peut plus être réaffecté par cette voie.');
         }
 
+        // Revalidé ici (défense en profondeur) même si le FormRequest le
+        // vérifie déjà : cette Action ne doit jamais dépendre uniquement de
+        // la couche HTTP pour rester sûre (§6.5, §8).
+        if (! $magistrat->hasRole('procureur') || $magistrat->ressort_id !== $dossier->affaire->ressort_id) {
+            throw new InvalidArgumentException('Le magistrat doit être un procureur du ressort de l\'affaire.');
+        }
+
         $dossier->update([
             'magistrat_id' => $magistrat->id,
             'affecte_at' => $this->horodatage->maintenant(),

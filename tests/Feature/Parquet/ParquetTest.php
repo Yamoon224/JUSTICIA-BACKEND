@@ -107,6 +107,27 @@ class ParquetTest extends TestCase
         $this->assertDatabaseHas('affaires', ['id' => $affaireId, 'statut' => 'classee_sans_suite']);
     }
 
+    public function test_on_ne_peut_pas_affecter_un_agent_qui_n_est_pas_procureur_du_ressort(): void
+    {
+        $ressort = $this->ressort();
+        $affaireId = $this->transmettreUneAffaire($ressort);
+        $procureur = $this->procureurDansRessort($ressort);
+        $opjAutreProfil = $this->opjDansRessort($ressort);
+        $procureurAutreRessort = $this->procureurDansRessort($this->ressort('B'));
+
+        $dossierId = DossierParquet::query()->where('affaire_id', $affaireId)->value('id');
+
+        $this->actingAs($procureur)
+            ->postJson("/api/v1/parquet/dossiers/{$dossierId}/affecter", ['magistrat_id' => $opjAutreProfil->id])
+            ->assertUnprocessable();
+
+        $this->actingAs($procureur)
+            ->postJson("/api/v1/parquet/dossiers/{$dossierId}/affecter", ['magistrat_id' => $procureurAutreRessort->id])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseHas('dossiers_parquet', ['id' => $dossierId, 'magistrat_id' => null]);
+    }
+
     public function test_un_classement_sans_suite_sans_motif_est_rejete(): void
     {
         $ressort = $this->ressort();
