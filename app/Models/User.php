@@ -20,7 +20,7 @@ use Spatie\Permission\Traits\HasRoles;
  * spatie/laravel-permission, et le périmètre de visibilité par le
  * rattachement à un service et un ressort (§4, §8).
  */
-#[Fillable(['matricule', 'nom', 'prenom', 'email', 'password', 'service_id', 'ressort_id'])]
+#[Fillable(['matricule', 'nom', 'prenom', 'email', 'password', 'service_id', 'ressort_id', 'actif', 'suspendu_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
