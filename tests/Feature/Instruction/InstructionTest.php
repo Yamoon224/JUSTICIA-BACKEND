@@ -4,6 +4,7 @@ namespace Tests\Feature\Instruction;
 
 use App\Domain\Instruction\Models\DossierInstruction;
 use App\Domain\Parquet\Models\DossierParquet;
+use App\Domain\Personnes\Models\Personne;
 use App\Models\Infraction;
 use App\Models\Ressort;
 use App\Models\Service;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Database\Seeders\ReferentielsSeeder;
 use Database\Seeders\RolesEtPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
@@ -110,6 +112,28 @@ class InstructionTest extends TestCase
         $this->actingAs($juge)
             ->postJson("/api/v1/instruction/dossiers/{$contexte['dossierId']}/affecter", ['juge_id' => $procureurMemeRessort->id])
             ->assertUnprocessable();
+    }
+
+    public function test_on_ne_peut_pas_mettre_en_examen_une_personne_etrangere_a_l_affaire(): void
+    {
+        $ressort = $this->ressort();
+        $contexte = $this->ouvrirUneInformation($ressort);
+        $juge = $this->agent($ressort, 'INSTR', 'juge_instruction');
+
+        $personneEtrangere = Personne::query()->create([
+            'identifiant_unique' => (string) Str::uuid(),
+            'type' => 'physique',
+            'nom' => 'Étranger à l\'affaire',
+        ]);
+
+        $this->actingAs($juge)->postJson("/api/v1/instruction/dossiers/{$contexte['dossierId']}/mise-en-examen", [
+            'personne_id' => $personneEtrangere->id,
+            'statut' => 'mis_en_examen',
+        ])->assertUnprocessable();
+
+        $this->actingAs($juge)->postJson("/api/v1/instruction/dossiers/{$contexte['dossierId']}/detention-provisoire", [
+            'personne_id' => $personneEtrangere->id,
+        ])->assertUnprocessable();
     }
 
     public function test_mise_en_examen_ajoute_le_statut_sur_le_pivot_affaire_personne(): void
