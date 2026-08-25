@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Referentiels;
 
+use App\Models\EtablissementPenitentiaire;
 use App\Models\Infraction;
 use App\Models\Juridiction;
 use App\Models\Ressort;
@@ -70,5 +71,27 @@ class ReferentielTest extends TestCase
         $this->seed(ReferentielsSeeder::class);
 
         $this->assertGreaterThan(0, Juridiction::query()->count());
+    }
+
+    public function test_les_etablissements_penitentiaires_sont_listes(): void
+    {
+        $ressort = Ressort::query()->create(['code' => 'R3', 'nom' => 'Ressort', 'type' => 'tribunal']);
+        $agent = User::factory()->create(['ressort_id' => $ressort->id]);
+        EtablissementPenitentiaire::query()->create(['code' => 'E1', 'nom' => 'Maison d\'arrêt pilote', 'ressort_id' => $ressort->id]);
+
+        $response = $this->actingAs($agent)->getJson('/api/v1/referentiels/etablissements-penitentiaires');
+
+        $response->assertOk()->assertJsonFragment(['code' => 'E1']);
+    }
+
+    /**
+     * §6.9 : l'écrou (EcrouerAction) exige un établissement pénitentiaire —
+     * même garde que pour la juridiction (§6.7).
+     */
+    public function test_le_seed_de_demonstration_fournit_au_moins_un_etablissement_penitentiaire(): void
+    {
+        $this->seed(ReferentielsSeeder::class);
+
+        $this->assertGreaterThan(0, EtablissementPenitentiaire::query()->count());
     }
 }

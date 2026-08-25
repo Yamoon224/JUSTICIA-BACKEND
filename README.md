@@ -39,7 +39,14 @@ Sanctum (auth par token) · spatie/laravel-permission (rôles/habilitations).
   sur le pivot affaire_personne), caractère définitif calculé à la volée,
   voies de recours avec recevabilité automatique — voir
   `app/Domain/Audiencement`.
-- ⏳ Phases 6 à 9 (Exécution, Casier, Statistiques, Recette, Pilote) : à venir.
+- ✅ **Phase 6 — Exécution des peines** (§6.9) : mise à exécution d'une
+  condamnation définitive, écrou (numéro généré, échéance recalculée à
+  chaque remise de peine, libération, transferts, aménagements de peine),
+  amende (transmission Trésor puis recouvrement), travail d'intérêt
+  général (clôture automatique au seuil d'heures), sursis avec mise à
+  l'épreuve, moteur d'alertes d'échéance de libération — voir
+  `app/Domain/Execution`.
+- ⏳ Phases 7 à 9 (Casier, Statistiques, Recette, Pilote) : à venir.
 
 ## Démarrage
 

@@ -7,6 +7,12 @@ use App\Http\Controllers\Api\V1\Audiencement\DecisionController;
 use App\Http\Controllers\Api\V1\Audiencement\DossierAudiencementController;
 use App\Http\Controllers\Api\V1\Audiencement\RecoursController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Execution\AmendeController;
+use App\Http\Controllers\Api\V1\Execution\DossierExecutionController;
+use App\Http\Controllers\Api\V1\Execution\EcrouController;
+use App\Http\Controllers\Api\V1\Execution\MiseAExecutionController;
+use App\Http\Controllers\Api\V1\Execution\MiseALEpreuveController;
+use App\Http\Controllers\Api\V1\Execution\TigController;
 use App\Http\Controllers\Api\V1\GardeAVue\MesureGardeAVueController;
 use App\Http\Controllers\Api\V1\Instruction\ActeInstructionController;
 use App\Http\Controllers\Api\V1\Instruction\DossierInstructionController;
@@ -24,7 +30,7 @@ use Illuminate\Support\Facades\Route;
 |
 | Consommée exclusivement par les interfaces « Web » (NextJS). Chaque
 | module métier enregistre ses routes ici sous le même préfixe versionné.
-| Restent à venir (Phases 6+) : exécution, casier.
+| Reste à venir (Phase 7+) : casier judiciaire.
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -43,6 +49,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/referentiels/juges-audience', [ReferentielController::class, 'jugesAudience'])->name('referentiels.juges-audience');
         Route::get('/referentiels/greffiers', [ReferentielController::class, 'greffiers'])->name('referentiels.greffiers');
         Route::get('/referentiels/juridictions', [ReferentielController::class, 'juridictions'])->name('referentiels.juridictions');
+        Route::get('/referentiels/etablissements-penitentiaires', [ReferentielController::class, 'etablissementsPenitentiaires'])->name('referentiels.etablissements-penitentiaires');
 
         // §6.2 — Identification des personnes.
         Route::get('/personnes', [PersonneController::class, 'index'])->name('personnes.index');
@@ -107,5 +114,24 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::post('/audiencement/decisions/{decision}/recours', [DecisionController::class, 'enregistrerRecours'])->name('audiencement.decisions.recours.store');
         Route::post('/audiencement/recours/{recours}/decision', [RecoursController::class, 'integrerDecision'])->name('audiencement.recours.decision');
+
+        // §6.9 — Exécution des peines et détention.
+        Route::post('/execution/decisions/{decision}/mettre-a-execution', [MiseAExecutionController::class, 'mettreAExecution'])->name('execution.decisions.mettre-a-execution');
+
+        Route::get('/execution/dossiers', [DossierExecutionController::class, 'index'])->name('execution.dossiers.index');
+        Route::get('/execution/dossiers/{dossier}', [DossierExecutionController::class, 'show'])->name('execution.dossiers.show');
+        Route::post('/execution/dossiers/{dossier}/ecrouer', [DossierExecutionController::class, 'ecrouer'])->name('execution.dossiers.ecrouer');
+        Route::post('/execution/dossiers/{dossier}/amende', [DossierExecutionController::class, 'transmettreAmende'])->name('execution.dossiers.amende');
+        Route::post('/execution/dossiers/{dossier}/tig', [DossierExecutionController::class, 'affecterTig'])->name('execution.dossiers.tig');
+        Route::post('/execution/dossiers/{dossier}/mise-a-l-epreuve', [DossierExecutionController::class, 'placerSousMiseALEpreuve'])->name('execution.dossiers.mise-a-l-epreuve');
+
+        Route::post('/execution/ecrous/{ecrou}/remise-de-peine', [EcrouController::class, 'enregistrerRemiseDePeine'])->name('execution.ecrous.remise-de-peine');
+        Route::post('/execution/ecrous/{ecrou}/liberer', [EcrouController::class, 'liberer'])->name('execution.ecrous.liberer');
+        Route::post('/execution/ecrous/{ecrou}/transferer', [EcrouController::class, 'transferer'])->name('execution.ecrous.transferer');
+        Route::post('/execution/ecrous/{ecrou}/amenagement', [EcrouController::class, 'decideAmenagement'])->name('execution.ecrous.amenagement');
+
+        Route::post('/execution/amendes/{amende}/recouvree', [AmendeController::class, 'marquerRecouvree'])->name('execution.amendes.recouvree');
+        Route::post('/execution/tig/{tig}/heures', [TigController::class, 'enregistrerHeures'])->name('execution.tig.heures');
+        Route::post('/execution/mises-a-l-epreuve/{mise}/lever', [MiseALEpreuveController::class, 'lever'])->name('execution.mises-a-l-epreuve.lever');
     });
 });

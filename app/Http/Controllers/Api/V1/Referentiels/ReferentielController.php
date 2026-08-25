@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Referentiels;
 
 use App\Http\Controllers\Controller;
+use App\Models\EtablissementPenitentiaire;
 use App\Models\Infraction;
 use App\Models\Juridiction;
 use App\Models\MotifClassement;
@@ -91,6 +92,21 @@ class ReferentielController extends Controller
             ->get(['id', 'code', 'nom', 'type', 'ressort_id']);
 
         return response()->json($juridictions);
+    }
+
+    /**
+     * Établissements pénitentiaires du ressort de l'agent, pour l'écrou (§6.9).
+     */
+    public function etablissementsPenitentiaires(Request $request): JsonResponse
+    {
+        $agent = $request->user();
+
+        $etablissements = EtablissementPenitentiaire::query()
+            ->when(! $agent->can('administration.gerer'), fn ($q) => $q->where('ressort_id', $agent->ressort_id))
+            ->orderBy('nom')
+            ->get(['id', 'code', 'nom', 'ressort_id', 'capacite']);
+
+        return response()->json($etablissements);
     }
 
     /**

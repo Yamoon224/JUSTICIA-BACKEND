@@ -3,11 +3,13 @@
 namespace App\Domain\Audiencement\Models;
 
 use App\Domain\Contracts\Auditable;
+use App\Domain\Execution\Models\DossierExecution;
 use App\Domain\Personnes\Models\Personne;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Décision par prévenu (§6.7). Le caractère définitif (estDefinitive) se
@@ -54,6 +56,14 @@ class Decision extends Model implements Auditable
     public function recours(): HasMany
     {
         return $this->hasMany(Recours::class);
+    }
+
+    /**
+     * @return HasOne<DossierExecution, $this>
+     */
+    public function dossierExecution(): HasOne
+    {
+        return $this->hasOne(DossierExecution::class);
     }
 
     /**

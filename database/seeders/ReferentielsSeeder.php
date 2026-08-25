@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\DelaiLegal;
+use App\Models\EtablissementPenitentiaire;
 use App\Models\Infraction;
 use App\Models\Juridiction;
 use App\Models\MotifClassement;
@@ -30,6 +31,10 @@ class ReferentielsSeeder extends Seeder
         // §6.7 : juridiction de jugement du ressort — nécessaire à
         // l'enrôlement (App\Domain\Audiencement\Actions\EnrolerAffaireAction).
         Juridiction::query()->create(['code' => 'TPI-01', 'nom' => 'Tribunal de première instance pilote', 'type' => 'tribunal', 'ressort_id' => $tribunal->id]);
+
+        // §6.9 : établissement pénitentiaire du ressort — nécessaire à
+        // l'écrou (App\Domain\Execution\Actions\EcrouerAction).
+        EtablissementPenitentiaire::query()->create(['code' => 'MAC-01', 'nom' => 'Maison d\'arrêt pilote', 'ressort_id' => $tribunal->id, 'capacite' => 500]);
 
         collect([
             ['code' => 'PJ', 'nom' => 'Police judiciaire', 'type' => 'police'],
