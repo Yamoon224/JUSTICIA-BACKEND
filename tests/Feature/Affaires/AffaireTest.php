@@ -138,4 +138,29 @@ class AffaireTest extends TestCase
         $this->assertDatabaseHas('affaire_infraction', ['affaire_id' => $affaireId, 'infraction_id' => $crime->id]);
         $this->assertDatabaseHas('affaire_infraction', ['affaire_id' => $affaireId, 'infraction_id' => $delit->id]);
     }
+
+    /**
+     * §6.2 : un changement de statut ajoute une ligne au pivot sans écraser
+     * l'historique — l'API doit néanmoins n'exposer qu'une seule entrée par
+     * personne (le statut courant), jamais une par ligne d'historique.
+     */
+    public function test_une_personne_avec_plusieurs_statuts_successifs_n_apparait_qu_une_fois(): void
+    {
+        $agent = $this->opjDansRessort($this->ressort());
+        $affaireId = $this->actingAs($agent)->postJson('/api/v1/affaires', [])->json('id');
+        $personneId = $this->actingAs($agent)->postJson('/api/v1/personnes', ['type' => 'physique', 'nom' => 'Test'])->json('id');
+
+        $this->actingAs($agent)->postJson("/api/v1/affaires/{$affaireId}/personnes", [
+            'personne_id' => $personneId, 'statut' => 'suspect',
+        ])->assertOk();
+        $this->actingAs($agent)->postJson("/api/v1/affaires/{$affaireId}/personnes", [
+            'personne_id' => $personneId, 'statut' => 'prevenu',
+        ])->assertOk();
+
+        $affaire = $this->actingAs($agent)->getJson("/api/v1/affaires/{$affaireId}");
+
+        $personnes = $affaire->json('personnes');
+        $this->assertCount(1, $personnes);
+        $this->assertSame('prevenu', $personnes[0]['statut']);
+    }
 }

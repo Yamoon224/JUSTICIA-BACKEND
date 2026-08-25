@@ -82,7 +82,7 @@ class Affaire extends Model implements Auditable
     public function personnes(): BelongsToMany
     {
         return $this->belongsToMany(Personne::class, 'affaire_personne')
-            ->withPivot(['statut', 'depuis'])
+            ->withPivot(['id', 'statut', 'depuis'])
             ->withTimestamps();
     }
 

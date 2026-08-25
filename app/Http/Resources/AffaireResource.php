@@ -30,12 +30,22 @@ class AffaireResource extends JsonResource
                 'libelle' => $infraction->libelle,
                 'categorie' => $infraction->categorie,
             ])),
-            'personnes' => $this->whenLoaded('personnes', fn () => $this->personnes->map(fn ($personne) => [
-                'id' => $personne->id,
-                'identifiant_unique' => $personne->identifiant_unique,
-                'nom_affichage' => $personne->nomAffichage(),
-                'statut' => $personne->pivot->statut,
-            ])),
+            // §6.2 : une personne garde une ligne par changement de statut sur
+            // l'affaire (l'historique n'est jamais écrasé — voir
+            // RattacherPersonneAAffaireAction), mais l'API n'expose ici que
+            // le statut courant de chacune : sans ce filtre, une personne
+            // ayant changé de statut (ex. prévenu → relaxé) apparaîtrait en
+            // double dans toute liste qui consomme ce champ.
+            'personnes' => $this->whenLoaded('personnes', fn () => $this->personnes
+                ->sortByDesc(fn ($personne) => $personne->pivot->id)
+                ->unique('id')
+                ->values()
+                ->map(fn ($personne) => [
+                    'id' => $personne->id,
+                    'identifiant_unique' => $personne->identifiant_unique,
+                    'nom_affichage' => $personne->nomAffichage(),
+                    'statut' => $personne->pivot->statut,
+                ])),
             'proces_verbaux' => $this->whenLoaded('procesVerbaux', fn () => ProcesVerbalResource::collection($this->procesVerbaux)),
             'scelles' => $this->whenLoaded('scelles', fn () => ScelleResource::collection($this->scelles)),
         ];
