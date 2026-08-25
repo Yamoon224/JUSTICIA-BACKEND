@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['dossier_instruction_id', 'type', 'description', 'date_prevue', 'date_realisation', 'statut', 'created_by'])]
 class ActeInstruction extends Model
 {
+    // La pluralisation par défaut d'Eloquent donnerait "acte_instructions" ;
+    // la migration nomme la table au pluriel sur "actes", pas "instruction".
+    protected $table = 'actes_instruction';
+
     protected function casts(): array
     {
         return [

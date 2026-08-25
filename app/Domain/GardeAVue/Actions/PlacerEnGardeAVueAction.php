@@ -43,6 +43,10 @@ class PlacerEnGardeAVueAction
             'fin_prevue_at' => $debutAt->clone()->addHours($dureeHeures),
             'mineur' => $mineur,
             'created_by' => $agent->id,
+            // Explicite plutôt que de compter sur le défaut SQL de la
+            // colonne : create() ne relit pas la ligne insérée, la valeur
+            // par défaut resterait absente de la réponse API immédiate.
+            'statut' => 'en_cours',
         ]);
 
         $this->audit->consigner('gav.placement', auditable: $mesure, acteur: $agent, payloadSupplementaire: [

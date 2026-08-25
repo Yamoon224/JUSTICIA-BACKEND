@@ -91,7 +91,7 @@ class GardeAVueTest extends TestCase
             'unite_id' => $unite->id,
         ]);
 
-        $response->assertCreated()->assertJsonPath('duree_heures', 48)->assertJsonPath('mineur', false);
+        $response->assertCreated()->assertJsonPath('duree_heures', 48)->assertJsonPath('mineur', false)->assertJsonPath('statut', 'en_cours');
     }
 
     public function test_le_regime_mineur_est_applique_automatiquement_selon_l_age(): void

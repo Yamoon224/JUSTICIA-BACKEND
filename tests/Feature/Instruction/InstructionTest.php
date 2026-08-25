@@ -170,7 +170,7 @@ class InstructionTest extends TestCase
             'personne_id' => $contexte['personneId'],
         ]);
 
-        $response->assertCreated()->assertJsonPath('duree_jours', 365);
+        $response->assertCreated()->assertJsonPath('duree_jours', 365)->assertJsonPath('statut', 'en_cours');
         $this->assertDatabaseHas('mesures_surete', [
             'dossier_instruction_id' => $contexte['dossierId'],
             'type' => 'detention_provisoire',
@@ -243,5 +243,66 @@ class InstructionTest extends TestCase
             'affaire_id' => $contexte['affaireId'],
             'statut' => 'condamne',
         ]);
+    }
+
+    public function test_enregistrer_et_mettre_a_jour_un_acte_d_instruction(): void
+    {
+        $ressort = $this->ressort();
+        $contexte = $this->ouvrirUneInformation($ressort);
+        $juge = $this->agent($ressort, 'INSTR', 'juge_instruction');
+
+        $acte = $this->actingAs($juge)->postJson("/api/v1/instruction/dossiers/{$contexte['dossierId']}/actes", [
+            'type' => 'expertise',
+            'description' => 'Expertise psychiatrique',
+        ]);
+        $acte->assertCreated()->assertJsonPath('statut', 'en_attente');
+
+        $miseAJour = $this->actingAs($juge)->postJson("/api/v1/instruction/actes/{$acte->json('id')}/statut", [
+            'statut' => 'rapport_depose',
+        ]);
+        $miseAJour->assertOk()->assertJsonPath('statut', 'rapport_depose');
+
+        $this->assertDatabaseHas('actes_instruction', [
+            'dossier_instruction_id' => $contexte['dossierId'],
+            'statut' => 'rapport_depose',
+        ]);
+    }
+
+    public function test_emettre_diffuser_et_executer_un_mandat(): void
+    {
+        $ressort = $this->ressort();
+        $contexte = $this->ouvrirUneInformation($ressort);
+        $juge = $this->agent($ressort, 'INSTR', 'juge_instruction');
+
+        $mandat = $this->actingAs($juge)->postJson("/api/v1/instruction/dossiers/{$contexte['dossierId']}/mandats", [
+            'personne_id' => $contexte['personneId'],
+            'type' => 'amener',
+        ]);
+        $mandat->assertCreated();
+        $mandatId = $mandat->json('id');
+
+        $this->actingAs($juge)->postJson("/api/v1/instruction/mandats/{$mandatId}/etape", ['etape' => 'diffuse'])
+            ->assertOk()->assertJsonPath('diffuse_at', fn ($valeur) => $valeur !== null);
+
+        $this->actingAs($juge)->postJson("/api/v1/instruction/mandats/{$mandatId}/etape", ['etape' => 'execute'])
+            ->assertOk()->assertJsonPath('execute_at', fn ($valeur) => $valeur !== null);
+    }
+
+    public function test_on_ne_peut_pas_emettre_un_mandat_pour_une_personne_etrangere_a_l_affaire(): void
+    {
+        $ressort = $this->ressort();
+        $contexte = $this->ouvrirUneInformation($ressort);
+        $juge = $this->agent($ressort, 'INSTR', 'juge_instruction');
+
+        $personneEtrangere = Personne::query()->create([
+            'identifiant_unique' => (string) Str::uuid(),
+            'type' => 'physique',
+            'nom' => 'Étranger',
+        ]);
+
+        $this->actingAs($juge)->postJson("/api/v1/instruction/dossiers/{$contexte['dossierId']}/mandats", [
+            'personne_id' => $personneEtrangere->id,
+            'type' => 'amener',
+        ])->assertUnprocessable();
     }
 }

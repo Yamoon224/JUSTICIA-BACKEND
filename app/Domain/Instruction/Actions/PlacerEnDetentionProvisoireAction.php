@@ -35,6 +35,9 @@ class PlacerEnDetentionProvisoireAction
             'duree_jours' => $dureeJours,
             'fin_prevue_at' => $debutAt->clone()->addDays($dureeJours),
             'autorise_par' => $juge->id,
+            // Explicite plutôt que de compter sur le défaut SQL : create()
+            // ne relit pas la ligne insérée pour la réponse API immédiate.
+            'statut' => 'en_cours',
         ]);
 
         $this->audit->consigner('instruction.detention_provisoire', auditable: $mesure, acteur: $juge, payloadSupplementaire: [

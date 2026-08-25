@@ -25,6 +25,9 @@ class EnregistrerActeInstructionAction
             'description' => $description,
             'date_prevue' => $datePrevue,
             'created_by' => $acteur->id,
+            // Explicite plutôt que de compter sur le défaut SQL : create()
+            // ne relit pas la ligne insérée pour la réponse API immédiate.
+            'statut' => 'en_attente',
         ]);
 
         $this->audit->consigner('instruction.acte', auditable: $dossier, acteur: $acteur, payloadSupplementaire: [

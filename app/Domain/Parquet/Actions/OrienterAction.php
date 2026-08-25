@@ -84,6 +84,11 @@ class OrienterAction
                 DossierInstruction::query()->create([
                     'affaire_id' => $dossier->affaire_id,
                     'ouvert_at' => $this->horodatage->maintenant(),
+                    // Explicite plutôt que de compter sur le défaut SQL :
+                    // create() ne relit pas la ligne insérée, un futur appel
+                    // exposant ce dossier fraîchement créé sans requête
+                    // intermédiaire aurait sinon un statut absent.
+                    'statut' => 'en_cours',
                 ]);
             }
         });
