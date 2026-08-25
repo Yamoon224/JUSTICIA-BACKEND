@@ -2,6 +2,7 @@
 
 namespace App\Domain\Affaires\Models;
 
+use App\Domain\Audiencement\Models\DossierAudiencement;
 use App\Domain\Contracts\Auditable;
 use App\Domain\Instruction\Models\DossierInstruction;
 use App\Domain\Parquet\Models\DossierParquet;
@@ -123,6 +124,14 @@ class Affaire extends Model implements Auditable
     public function dossierInstruction(): HasOne
     {
         return $this->hasOne(DossierInstruction::class);
+    }
+
+    /**
+     * @return HasOne<DossierAudiencement, $this>
+     */
+    public function dossierAudiencement(): HasOne
+    {
+        return $this->hasOne(DossierAudiencement::class);
     }
 
     public function auditableRepresentation(): array

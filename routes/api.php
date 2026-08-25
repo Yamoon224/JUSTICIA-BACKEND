@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\V1\Affaires\AffaireController;
 use App\Http\Controllers\Api\V1\Affaires\ProcesVerbalController;
 use App\Http\Controllers\Api\V1\Affaires\ScelleController;
+use App\Http\Controllers\Api\V1\Audiencement\DecisionController;
+use App\Http\Controllers\Api\V1\Audiencement\DossierAudiencementController;
+use App\Http\Controllers\Api\V1\Audiencement\RecoursController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\GardeAVue\MesureGardeAVueController;
 use App\Http\Controllers\Api\V1\Instruction\ActeInstructionController;
@@ -21,7 +24,7 @@ use Illuminate\Support\Facades\Route;
 |
 | Consommée exclusivement par les interfaces « Web » (NextJS). Chaque
 | module métier enregistre ses routes ici sous le même préfixe versionné.
-| Restent à venir (Phases 5+) : audiencement, exécution, casier.
+| Restent à venir (Phases 6+) : exécution, casier.
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -37,6 +40,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/referentiels/motifs-classement', [ReferentielController::class, 'motifsClassement'])->name('referentiels.motifs-classement');
         Route::get('/referentiels/magistrats', [ReferentielController::class, 'magistrats'])->name('referentiels.magistrats');
         Route::get('/referentiels/juges-instruction', [ReferentielController::class, 'jugesInstruction'])->name('referentiels.juges-instruction');
+        Route::get('/referentiels/juges-audience', [ReferentielController::class, 'jugesAudience'])->name('referentiels.juges-audience');
+        Route::get('/referentiels/greffiers', [ReferentielController::class, 'greffiers'])->name('referentiels.greffiers');
+        Route::get('/referentiels/juridictions', [ReferentielController::class, 'juridictions'])->name('referentiels.juridictions');
 
         // §6.2 — Identification des personnes.
         Route::get('/personnes', [PersonneController::class, 'index'])->name('personnes.index');
@@ -91,5 +97,15 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/instruction/mandats/{mandat}/etape', [MandatController::class, 'mettreAJour'])->name('instruction.mandats.etape');
         Route::post('/instruction/mesures-surete/{mesure}/renouveler', [MesureSureteController::class, 'renouveler'])->name('instruction.mesures-surete.renouveler');
         Route::post('/instruction/mesures-surete/{mesure}/lever', [MesureSureteController::class, 'lever'])->name('instruction.mesures-surete.lever');
+
+        // §6.7, §6.8 — Audiencement : enrôlement, décisions, voies de recours.
+        Route::get('/audiencement/dossiers', [DossierAudiencementController::class, 'index'])->name('audiencement.dossiers.index');
+        Route::get('/audiencement/dossiers/{dossier}', [DossierAudiencementController::class, 'show'])->name('audiencement.dossiers.show');
+        Route::post('/audiencement/dossiers/{dossier}/enroler', [DossierAudiencementController::class, 'enroler'])->name('audiencement.dossiers.enroler');
+        Route::post('/audiencement/dossiers/{dossier}/renvoyer', [DossierAudiencementController::class, 'renvoyer'])->name('audiencement.dossiers.renvoyer');
+        Route::post('/audiencement/dossiers/{dossier}/decisions', [DossierAudiencementController::class, 'enregistrerDecision'])->name('audiencement.dossiers.decisions.store');
+
+        Route::post('/audiencement/decisions/{decision}/recours', [DecisionController::class, 'enregistrerRecours'])->name('audiencement.decisions.recours.store');
+        Route::post('/audiencement/recours/{recours}/decision', [RecoursController::class, 'integrerDecision'])->name('audiencement.recours.decision');
     });
 });

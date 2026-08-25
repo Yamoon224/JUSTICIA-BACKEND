@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Referentiels;
 
 use App\Http\Controllers\Controller;
 use App\Models\Infraction;
+use App\Models\Juridiction;
 use App\Models\MotifClassement;
 use App\Models\Unite;
 use App\Models\User;
@@ -61,6 +62,35 @@ class ReferentielController extends Controller
     public function jugesInstruction(Request $request): JsonResponse
     {
         return response()->json($this->agentsAyantLeRole('juge_instruction', $request));
+    }
+
+    /**
+     * Juges d'audience et greffiers du ressort de l'agent, pour
+     * l'enrôlement des affaires (§6.7).
+     */
+    public function jugesAudience(Request $request): JsonResponse
+    {
+        return response()->json($this->agentsAyantLeRole('juge_audience', $request));
+    }
+
+    public function greffiers(Request $request): JsonResponse
+    {
+        return response()->json($this->agentsAyantLeRole('greffier', $request));
+    }
+
+    /**
+     * Juridictions du ressort de l'agent, pour l'enrôlement (§6.7).
+     */
+    public function juridictions(Request $request): JsonResponse
+    {
+        $agent = $request->user();
+
+        $juridictions = Juridiction::query()
+            ->when(! $agent->can('administration.gerer'), fn ($q) => $q->where('ressort_id', $agent->ressort_id))
+            ->orderBy('nom')
+            ->get(['id', 'code', 'nom', 'type', 'ressort_id']);
+
+        return response()->json($juridictions);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Parquet\Actions;
 
+use App\Domain\Audiencement\Actions\OuvrirDossierAudiencementAction;
 use App\Domain\Audit\AuditService;
 use App\Domain\Contracts\Horodatable;
 use App\Domain\Instruction\Models\DossierInstruction;
@@ -14,12 +15,15 @@ use InvalidArgumentException;
 /**
  * Orientation des poursuites (§6.5) : décision du magistrat, jamais
  * automatique (§3). Répercute sur l'affaire les issues qui sortent
- * définitivement du périmètre parquet à ce stade — classement sans suite
- * (§6.3, statut `affaires`) et ouverture d'information, qui ouvre aussitôt
- * le dossier d'information correspondant (§6.6, module Instruction). Les
- * autres orientations (citation directe, comparution immédiate,
- * composition, médiation, rappel à la loi) seront reliées à
- * l'audiencement en Phase 5.
+ * définitivement du périmètre parquet à ce stade :
+ * - classement sans suite (§6.3, statut `affaires`) ;
+ * - ouverture d'information, qui ouvre aussitôt le dossier d'information
+ *   correspondant (§6.6, module Instruction) ;
+ * - citation directe et comparution immédiate, qui ouvrent directement le
+ *   dossier d'audiencement (§6.7, module Audiencement), sans passer par
+ *   l'instruction.
+ * Les orientations restantes (composition, médiation, rappel à la loi) ne
+ * sont pas encore reliées à un module de suivi dédié.
  */
 class OrienterAction
 {
@@ -39,11 +43,14 @@ class OrienterAction
     private const TRANSITIONS_AFFAIRE = [
         'classement_sans_suite' => 'classee_sans_suite',
         'ouverture_information' => 'information_ouverte',
+        'citation_directe' => 'audiencee',
+        'comparution_immediate' => 'audiencee',
     ];
 
     public function __construct(
         private readonly AuditService $audit,
         private readonly Horodatable $horodatage,
+        private readonly OuvrirDossierAudiencementAction $ouvrirAudiencement,
     ) {}
 
     public function executer(
@@ -90,6 +97,10 @@ class OrienterAction
                     // intermédiaire aurait sinon un statut absent.
                     'statut' => 'en_cours',
                 ]);
+            }
+
+            if (in_array($orientation, ['citation_directe', 'comparution_immediate'], true)) {
+                $this->ouvrirAudiencement->executer($dossier->affaire);
             }
         });
 

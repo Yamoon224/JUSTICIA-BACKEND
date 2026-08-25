@@ -32,8 +32,14 @@ Sanctum (auth par token) · spatie/laravel-permission (rôles/habilitations).
     (contrôle judiciaire, détention provisoire avec délais résolus depuis
     le référentiel), ordonnance de règlement (renvoi/non-lieu) — voir
     `app/Domain/Instruction`.
-- ⏳ Phases 5 à 9 (Jugement & recours, Exécution, Casier, Statistiques,
-  Recette, Pilote) : à venir.
+- ✅ **Phase 5 — Jugement & recours** (§6.7-6.8) : dossier d'audiencement
+  ouvert automatiquement (citation directe/comparution immédiate du
+  parquet, renvoi de l'instruction), enrôlement par le greffe, renvois
+  d'audience tracés, décision par prévenu (mise à jour immédiate du statut
+  sur le pivot affaire_personne), caractère définitif calculé à la volée,
+  voies de recours avec recevabilité automatique — voir
+  `app/Domain/Audiencement`.
+- ⏳ Phases 6 à 9 (Exécution, Casier, Statistiques, Recette, Pilote) : à venir.
 
 ## Démarrage
 

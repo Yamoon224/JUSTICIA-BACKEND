@@ -3,12 +3,14 @@
 namespace App\Providers;
 
 use App\Domain\Affaires\Models\Affaire;
+use App\Domain\Audiencement\Models\DossierAudiencement;
 use App\Domain\Contracts\Horodatable;
 use App\Domain\Instruction\Models\DossierInstruction;
 use App\Domain\Parquet\Models\DossierParquet;
 use App\Domain\Personnes\Models\Personne;
 use App\Domain\Support\HorodatageService;
 use App\Policies\AffairePolicy;
+use App\Policies\DossierAudiencementPolicy;
 use App\Policies\DossierInstructionPolicy;
 use App\Policies\DossierParquetPolicy;
 use App\Policies\PersonnePolicy;
@@ -34,6 +36,7 @@ class DomainServiceProvider extends ServiceProvider
         Affaire::class => AffairePolicy::class,
         DossierParquet::class => DossierParquetPolicy::class,
         DossierInstruction::class => DossierInstructionPolicy::class,
+        DossierAudiencement::class => DossierAudiencementPolicy::class,
     ];
 
     public function register(): void

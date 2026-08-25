@@ -2,6 +2,7 @@
 
 namespace App\Domain\Instruction\Actions;
 
+use App\Domain\Audiencement\Actions\OuvrirDossierAudiencementAction;
 use App\Domain\Audit\AuditService;
 use App\Domain\Instruction\Models\DossierInstruction;
 use App\Domain\Support\ResolveurDelaiLegal;
@@ -35,6 +36,7 @@ class RendreOrdonnanceAction
     public function __construct(
         private readonly AuditService $audit,
         private readonly ResolveurDelaiLegal $delais,
+        private readonly OuvrirDossierAudiencementAction $ouvrirAudiencement,
     ) {}
 
     public function executer(DossierInstruction $dossier, string $ordonnance, User $juge): DossierInstruction
@@ -60,6 +62,10 @@ class RendreOrdonnanceAction
             ]);
 
             $dossier->affaire->update(['statut' => self::TRANSITIONS_AFFAIRE[$ordonnance]]);
+
+            if ($ordonnance === 'renvoi') {
+                $this->ouvrirAudiencement->executer($dossier->affaire);
+            }
         });
 
         $this->audit->consigner('instruction.ordonnance', auditable: $dossier, acteur: $juge, payloadSupplementaire: [

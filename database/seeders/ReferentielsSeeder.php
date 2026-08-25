@@ -107,5 +107,14 @@ class ReferentielsSeeder extends Seeder
             'duree_jours' => 10,
             'date_entree_vigueur' => $today,
         ]);
+
+        // §6.7, §6.8 : délai d'appel/opposition/pourvoi contre un jugement.
+        DelaiLegal::query()->create([
+            'code' => 'RECOURS_JUGEMENT',
+            'libelle' => 'Recours contre une décision de jugement',
+            'type_acte' => 'recours_jugement',
+            'duree_jours' => 15,
+            'date_entree_vigueur' => $today,
+        ]);
     }
 }
