@@ -118,6 +118,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // §6.9 — Exécution des peines et détention.
         Route::post('/execution/decisions/{decision}/mettre-a-execution', [MiseAExecutionController::class, 'mettreAExecution'])->name('execution.decisions.mettre-a-execution');
 
+        Route::get('/execution/decisions-a-executer', [DossierExecutionController::class, 'decisionsAExecuter'])->name('execution.decisions-a-executer');
         Route::get('/execution/dossiers', [DossierExecutionController::class, 'index'])->name('execution.dossiers.index');
         Route::get('/execution/dossiers/{dossier}', [DossierExecutionController::class, 'show'])->name('execution.dossiers.show');
         Route::post('/execution/dossiers/{dossier}/ecrouer', [DossierExecutionController::class, 'ecrouer'])->name('execution.dossiers.ecrouer');

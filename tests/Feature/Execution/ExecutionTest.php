@@ -174,6 +174,29 @@ class ExecutionTest extends TestCase
         $this->assertSame($attendu, substr($ecrou->json('date_fin_prevue'), 0, 10));
     }
 
+    /**
+     * Verrou de non-régression (détecté par capture d'écran §… — le même
+     * bug que sur Audiencement/Instruction : un eager-load incomplet de
+     * affaire.personnes fait retomber le frontend sur « Personne #id »).
+     */
+    public function test_le_dossier_expose_le_nom_de_la_personne_condamnee(): void
+    {
+        $ressort = $this->ressort();
+        $contexte = $this->obtenirUneCondamnationDefinitive($ressort);
+        $agentPenit = $this->agent($ressort, 'PENIT', 'penitentiaire', 'agent_penitentiaire');
+
+        $dossierId = $this->actingAs($agentPenit)->postJson("/api/v1/execution/decisions/{$contexte['decisionId']}/mettre-a-execution")->json('id');
+
+        $show = $this->actingAs($agentPenit)->getJson("/api/v1/execution/dossiers/{$dossierId}");
+        $show->assertOk();
+        $personnes = collect($show->json('affaire.personnes'))->pluck('id');
+        $this->assertContains($contexte['personneId'], $personnes);
+
+        $liste = $this->actingAs($agentPenit)->getJson('/api/v1/execution/dossiers');
+        $liste->assertOk();
+        $this->assertNotEmpty($liste->json('data.0.affaire.personnes'));
+    }
+
     public function test_on_ne_peut_pas_ecrouer_deux_fois_le_meme_dossier(): void
     {
         $ressort = $this->ressort();
@@ -296,5 +319,31 @@ class ExecutionTest extends TestCase
 
         $agentPenitB = $this->agent($this->ressort('B'), 'PENIT', 'penitentiaire', 'agent_penitentiaire');
         $this->actingAs($agentPenitB)->getJson("/api/v1/execution/dossiers/{$dossierId}")->assertForbidden();
+    }
+
+    /**
+     * Le service pénitentiaire n'a pas accès au dossier d'audiencement lui-
+     * même (App\Policies\DossierAudiencementPolicy exige `audiencement.gerer`,
+     * pas `execution.gerer`) : /execution/decisions-a-executer est son seul
+     * point d'entrée vers la mise à exécution.
+     */
+    public function test_les_decisions_a_executer_listent_les_condamnations_definitives_sans_dossier(): void
+    {
+        $ressortA = $this->ressort('A');
+        $contexte = $this->obtenirUneCondamnationDefinitive($ressortA);
+        $agentPenitA = $this->agent($ressortA, 'PENIT', 'penitentiaire', 'agent_penitentiaire');
+
+        $liste = $this->actingAs($agentPenitA)->getJson('/api/v1/execution/decisions-a-executer');
+        $liste->assertOk();
+        $this->assertCount(1, $liste->json('data'));
+        $this->assertSame($contexte['decisionId'], $liste->json('data.0.id'));
+
+        // Une fois mise à exécution, la décision disparaît de la liste.
+        $this->actingAs($agentPenitA)->postJson("/api/v1/execution/decisions/{$contexte['decisionId']}/mettre-a-execution")->assertCreated();
+        $this->actingAs($agentPenitA)->getJson('/api/v1/execution/decisions-a-executer')->assertJsonCount(0, 'data');
+
+        // Un agent d'un autre ressort ne la voit jamais.
+        $this->obtenirUneCondamnationDefinitive($this->ressort('B'));
+        $this->actingAs($agentPenitA)->getJson('/api/v1/execution/decisions-a-executer')->assertJsonCount(0, 'data');
     }
 }

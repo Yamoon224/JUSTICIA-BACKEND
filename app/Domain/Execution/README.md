@@ -36,6 +36,12 @@ Périmètre : cahier des charges §6.9 (Exécution des peines et détention).
 - Référentiel établissement pénitentiaire
   (`GET /referentiels/etablissements-penitentiaires`, filtré par ressort
   sauf `administration.gerer`), avec seed minimal de démonstration.
+- `GET /execution/decisions-a-executer` : liste des condamnations
+  définitives pas encore mises à exécution, scopée par ressort. C'est le
+  véritable point d'entrée du service pénitentiaire vers la mise à
+  exécution — celui-ci n'a pas accès au dossier d'audiencement lui-même
+  (`DossierAudiencementPolicy` exige `audiencement.gerer`, pas
+  `execution.gerer`), donc ne peut pas partir de là.
 - Cloisonnement par ressort (`DossierExecutionPolicy`), résolu en
   traversant `decision.dossierAudiencement.affaire.ressort_id`.
 - Par construction, aucune des routes de ce module n'accepte de
