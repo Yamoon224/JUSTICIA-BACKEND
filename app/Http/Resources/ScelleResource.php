@@ -27,6 +27,7 @@ class ScelleResource extends JsonResource
                 'motif' => $mouvement->motif,
                 'horodatage' => $mouvement->horodatage->toIso8601String(),
             ])),
+            'documents' => $this->whenLoaded('documents', fn () => DocumentResource::collection($this->documents)),
         ];
     }
 }

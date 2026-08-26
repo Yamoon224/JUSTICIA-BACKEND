@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Administration\AgentController;
+use App\Http\Controllers\Api\V1\Administration\HabilitationController;
+use App\Http\Controllers\Api\V1\Administration\InfractionController;
 use App\Http\Controllers\Api\V1\Affaires\AffaireController;
 use App\Http\Controllers\Api\V1\Affaires\ProcesVerbalController;
 use App\Http\Controllers\Api\V1\Affaires\ScelleController;
+use App\Http\Controllers\Api\V1\Alertes\AlerteController;
 use App\Http\Controllers\Api\V1\Audiencement\DecisionController;
 use App\Http\Controllers\Api\V1\Audiencement\DossierAudiencementController;
 use App\Http\Controllers\Api\V1\Audiencement\RecoursController;
@@ -10,6 +14,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Casier\BulletinController;
 use App\Http\Controllers\Api\V1\Casier\CondamnationController;
 use App\Http\Controllers\Api\V1\Casier\ConsultationController;
+use App\Http\Controllers\Api\V1\Documents\DocumentController;
 use App\Http\Controllers\Api\V1\Execution\AmendeController;
 use App\Http\Controllers\Api\V1\Execution\DossierExecutionController;
 use App\Http\Controllers\Api\V1\Execution\EcrouController;
@@ -43,9 +48,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
+        // §6.1, §6.11 — Alertes personnelles (agenda de l'agent).
+        Route::get('/alertes', [AlerteController::class, 'index'])->name('alertes.index');
+        Route::post('/alertes/{alerte}/lire', [AlerteController::class, 'marquerLue'])->name('alertes.lire');
+
         // §6.13 — Référentiels (lecture seule, pour les listes de choix).
         Route::get('/referentiels/infractions', [ReferentielController::class, 'infractions'])->name('referentiels.infractions');
         Route::get('/referentiels/unites', [ReferentielController::class, 'unites'])->name('referentiels.unites');
+        Route::get('/referentiels/services', [ReferentielController::class, 'services'])->name('referentiels.services');
         Route::get('/referentiels/motifs-classement', [ReferentielController::class, 'motifsClassement'])->name('referentiels.motifs-classement');
         Route::get('/referentiels/magistrats', [ReferentielController::class, 'magistrats'])->name('referentiels.magistrats');
         Route::get('/referentiels/juges-instruction', [ReferentielController::class, 'jugesInstruction'])->name('referentiels.juges-instruction');
@@ -72,10 +82,19 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/proces-verbaux/{procesVerbal}', [ProcesVerbalController::class, 'show'])->name('proces-verbaux.show');
         Route::post('/proces-verbaux/{procesVerbal}/signer', [ProcesVerbalController::class, 'signer'])->name('proces-verbaux.signer');
         Route::post('/proces-verbaux/{procesVerbal}/rectifier', [ProcesVerbalController::class, 'rectifier'])->name('proces-verbaux.rectifier');
+        Route::get('/proces-verbaux/{procesVerbal}/pdf', [ProcesVerbalController::class, 'telechargerPdf'])->name('proces-verbaux.pdf');
 
         // §6.4 — Pièces à conviction et scellés.
         Route::post('/affaires/{affaire}/scelles', [ScelleController::class, 'store'])->name('scelles.store');
         Route::post('/scelles/{scelle}/mouvements', [ScelleController::class, 'enregistrerMouvement'])->name('scelles.mouvements.store');
+
+        // §6.2, §6.3, §6.4, §9 — Pièces versées (photos, pièces d'identité,
+        // pièces d'affaire cotées, photos de scellé) : stockage chiffré,
+        // jamais servi directement (cf. App\Domain\Contracts\StockageDocuments).
+        Route::post('/personnes/{personne}/documents', [DocumentController::class, 'storePourPersonne'])->name('personnes.documents.store');
+        Route::post('/affaires/{affaire}/documents', [DocumentController::class, 'storePourAffaire'])->name('affaires.documents.store');
+        Route::post('/scelles/{scelle}/documents', [DocumentController::class, 'storePourScelle'])->name('scelles.documents.store');
+        Route::get('/documents/{document}', [DocumentController::class, 'telecharger'])->name('documents.show');
 
         // §6.1 — Interpellation et garde à vue.
         Route::post('/gav/mesures', [MesureGardeAVueController::class, 'store'])->name('gav.mesures.store');
@@ -143,11 +162,24 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // ressort dans ces routes (voir App\Policies\CondamnationPolicy).
         Route::get('/casier/personnes/{personne}/condamnations', [CondamnationController::class, 'index'])->name('casier.personnes.condamnations');
         Route::get('/casier/personnes/{personne}/bulletin', [BulletinController::class, 'generer'])->name('casier.personnes.bulletin');
+        Route::get('/casier/personnes/{personne}/bulletin/pdf', [BulletinController::class, 'telechargerPdf'])->name('casier.personnes.bulletin.pdf');
         Route::get('/casier/personnes/{personne}/consultations', [ConsultationController::class, 'index'])->name('casier.personnes.consultations');
         Route::post('/casier/condamnations/{condamnation}/rehabiliter', [CondamnationController::class, 'rehabiliter'])->name('casier.condamnations.rehabiliter');
         Route::post('/casier/condamnations/{condamnation}/amnistier', [CondamnationController::class, 'amnistier'])->name('casier.condamnations.amnistier');
 
         // §6.11, §6.12 — Statistiques et pilotage.
         Route::get('/statistiques/tableau-de-bord', [TableauDeBordController::class, 'afficher'])->name('statistiques.tableau-de-bord');
+
+        // §6.13 — Administration et habilitations.
+        Route::get('/administration/agents', [AgentController::class, 'index'])->name('administration.agents.index');
+        Route::post('/administration/agents', [AgentController::class, 'store'])->name('administration.agents.store');
+        Route::post('/administration/agents/{agent}/valider', [AgentController::class, 'valider'])->name('administration.agents.valider');
+        Route::post('/administration/agents/{agent}/suspendre', [AgentController::class, 'suspendre'])->name('administration.agents.suspendre');
+        Route::post('/administration/agents/{agent}/reactiver', [AgentController::class, 'reactiver'])->name('administration.agents.reactiver');
+
+        Route::get('/administration/roles', [HabilitationController::class, 'roles'])->name('administration.roles.index');
+        Route::post('/administration/agents/{agent}/roles', [HabilitationController::class, 'assigner'])->name('administration.agents.roles');
+
+        Route::post('/administration/infractions', [InfractionController::class, 'store'])->name('administration.infractions.store');
     });
 });

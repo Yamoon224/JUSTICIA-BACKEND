@@ -4,12 +4,14 @@ namespace App\Domain\Personnes\Models;
 
 use App\Domain\Affaires\Models\Affaire;
 use App\Domain\Contracts\Auditable;
+use App\Domain\Documents\Models\Document;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
  * Fichier central des personnes mises en cause (§6.2). Le statut d'une
@@ -73,6 +75,16 @@ class Personne extends Model implements Auditable
     public function creePar(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Photos, pièces d'identité numérisées (§6.2, §9).
+     *
+     * @return MorphMany<Document, $this>
+     */
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 
     public function nomAffichage(): string

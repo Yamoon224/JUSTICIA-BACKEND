@@ -3,11 +3,13 @@
 namespace App\Domain\Affaires\Models;
 
 use App\Domain\Contracts\Auditable;
+use App\Domain\Documents\Models\Document;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable(['affaire_id', 'numero_scelle', 'description', 'lieu_saisie', 'statut', 'created_by'])]
 class Scelle extends Model implements Auditable
@@ -34,6 +36,16 @@ class Scelle extends Model implements Auditable
     public function creePar(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Photos du scellé (§6.4, §9).
+     *
+     * @return MorphMany<Document, $this>
+     */
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 
     public function auditableRepresentation(): array

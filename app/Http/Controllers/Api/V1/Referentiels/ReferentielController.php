@@ -8,6 +8,7 @@ use App\Models\Infraction;
 use App\Models\Juridiction;
 use App\Models\MotifClassement;
 use App\Models\Ressort;
+use App\Models\Service;
 use App\Models\Unite;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -41,6 +42,15 @@ class ReferentielController extends Controller
             ->get(['id', 'code', 'nom', 'type', 'ressort_id']);
 
         return response()->json($unites);
+    }
+
+    /**
+     * Services (§4, §6.13), pour le rattachement d'un agent à la création
+     * d'un compte (App\Http\Controllers\Api\V1\Administration\AgentController).
+     */
+    public function services(): JsonResponse
+    {
+        return response()->json(Service::query()->orderBy('nom')->get(['id', 'code', 'nom', 'type']));
     }
 
     public function motifsClassement(): JsonResponse

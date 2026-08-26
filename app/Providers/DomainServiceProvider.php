@@ -5,12 +5,16 @@ namespace App\Providers;
 use App\Domain\Affaires\Models\Affaire;
 use App\Domain\Audiencement\Models\DossierAudiencement;
 use App\Domain\Casier\Models\Condamnation;
+use App\Domain\Contracts\GenerateurPdf;
 use App\Domain\Contracts\Horodatable;
+use App\Domain\Contracts\StockageDocuments;
 use App\Domain\Execution\Models\DossierExecution;
 use App\Domain\Instruction\Models\DossierInstruction;
 use App\Domain\Parquet\Models\DossierParquet;
 use App\Domain\Personnes\Models\Personne;
+use App\Domain\Support\GenerateurPdfDompdf;
 use App\Domain\Support\HorodatageService;
+use App\Domain\Support\StockageDocumentsChiffre;
 use App\Policies\AffairePolicy;
 use App\Policies\CondamnationPolicy;
 use App\Policies\DossierAudiencementPolicy;
@@ -48,6 +52,8 @@ class DomainServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(Horodatable::class, HorodatageService::class);
+        $this->app->bind(StockageDocuments::class, StockageDocumentsChiffre::class);
+        $this->app->bind(GenerateurPdf::class, GenerateurPdfDompdf::class);
     }
 
     public function boot(): void

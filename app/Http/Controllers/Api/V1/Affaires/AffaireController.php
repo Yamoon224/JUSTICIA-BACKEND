@@ -51,7 +51,7 @@ class AffaireController extends Controller
     {
         Gate::authorize('view', $affaire);
 
-        return AffaireResource::make($affaire->load(['infractions', 'personnes', 'procesVerbaux', 'scelles.mouvements']));
+        return AffaireResource::make($affaire->load(['infractions', 'personnes', 'procesVerbaux', 'scelles.mouvements', 'scelles.documents', 'documents']));
     }
 
     public function rattacherPersonne(RattacherPersonneRequest $request, Affaire $affaire, RattacherPersonneAAffaireAction $action): AffaireResource

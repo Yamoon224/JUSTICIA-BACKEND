@@ -24,6 +24,10 @@ class AgentResource extends JsonResource
             'nom_complet' => $this->nomComplet(),
             'email' => $this->email,
             'actif' => $this->actif,
+            'suspendu_at' => $this->suspendu_at?->toIso8601String(),
+            'valide' => $this->estValide(),
+            'valide_at' => $this->valide_at?->toIso8601String(),
+            'cree_par' => $this->cree_par,
             'roles' => $this->getRoleNames(),
             'permissions' => $this->getAllPermissions()->pluck('name'),
             'service' => $this->whenLoaded('service', fn () => [

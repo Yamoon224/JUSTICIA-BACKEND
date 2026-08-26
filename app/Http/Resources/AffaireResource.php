@@ -48,6 +48,7 @@ class AffaireResource extends JsonResource
                 ])),
             'proces_verbaux' => $this->whenLoaded('procesVerbaux', fn () => ProcesVerbalResource::collection($this->procesVerbaux)),
             'scelles' => $this->whenLoaded('scelles', fn () => ScelleResource::collection($this->scelles)),
+            'documents' => $this->whenLoaded('documents', fn () => DocumentResource::collection($this->documents)),
         ];
     }
 }

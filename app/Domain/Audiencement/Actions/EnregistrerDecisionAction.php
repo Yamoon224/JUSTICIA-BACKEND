@@ -18,6 +18,14 @@ use InvalidArgumentException;
  * affaire_personne (§6.2, §3 : présomption d'innocence) : une personne
  * relaxée ou acquittée ne doit jamais apparaître comme condamnée, et
  * réciproquement.
+ *
+ * Une seule décision par personne et par dossier, sauf si la précédente a
+ * été rouverte par un recours recevable et résolu (§6.8) : c'est le seul
+ * cas où une nouvelle décision sur le même dossier est légitime — la
+ * juridiction saisie en appel/cassation rend sa décision comme n'importe
+ * quel jugement (IntegrerDecisionRecoursAction, §14 : « appel avec
+ * infirmation → mise à jour exécution/casier »). Un doublon accidentel
+ * (sans recours entre les deux) reste rejeté.
  */
 class EnregistrerDecisionAction
 {
@@ -59,6 +67,14 @@ class EnregistrerDecisionAction
 
         if (! in_array($decision, self::DECISIONS_VALIDES, true)) {
             throw new InvalidArgumentException("Décision inconnue : {$decision}.");
+        }
+
+        $precedente = $dossier->decisions()->where('personne_id', $personne->id)->latest('id')->first();
+        if ($precedente !== null && ! $precedente->recours()->where('recevable', true)->whereNotNull('decision_recours')->exists()) {
+            throw new InvalidArgumentException(
+                'Une décision a déjà été rendue pour cette personne sur ce dossier ; seule '.
+                "l'issue d'un recours recevable peut en justifier une nouvelle."
+            );
         }
 
         $joursRecours = $this->delais->dureeJours('recours_jugement', $dossier->affaire) ?? self::JOURS_RECOURS_DEFAUT;

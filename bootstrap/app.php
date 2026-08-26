@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // signalée « en priorité absolue » — vérification chaque minute.
         $schedule->command('gav:verifier-echeances')->everyMinute()->withoutOverlapping();
 
+        // §6.6, §6.11 : même exigence de signalement en priorité absolue que
+        // la GAV, mais à l'échelle de jours plutôt que de minutes — une
+        // vérification horaire suffit très largement.
+        $schedule->command('instruction:verifier-echeances-detention')->hourly()->withoutOverlapping();
+
         // §6.10, §6.11 : constat des réhabilitations de plein droit — rien
         // n'y est urgent à la minute près, une vérification quotidienne
         // suffit.

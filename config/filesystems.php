@@ -47,6 +47,22 @@ return [
             'report' => false,
         ],
 
+        // §6.2, §6.3, §6.4, §9 : pièces versées au dossier (photos, pièces
+        // d'identité, scellés numérisés) — jamais servi directement au web
+        // (serve => false, pas de 'url'), à la différence du disque
+        // "public" : toute lecture passe obligatoirement par
+        // RecupererDocumentAction, qui vérifie l'habilitation, l'intégrité
+        // et journalise la consultation (§8). Le contenu lui-même est
+        // chiffré par StockageDocumentsChiffre avant écriture, indépendamment
+        // du disque — voir App\Domain\Contracts\StockageDocuments.
+        'pieces' => [
+            'driver' => 'local',
+            'root' => storage_path('app/pieces'),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

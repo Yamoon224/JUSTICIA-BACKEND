@@ -21,6 +21,6 @@ class ConsulterPersonneAction
     {
         $this->audit->consigner('personnes.consultation', auditable: $personne, acteur: $agent, motif: $motif);
 
-        return $personne->load(['piecesIdentite', 'representantLegal']);
+        return $personne->load(['piecesIdentite', 'representantLegal', 'documents']);
     }
 }

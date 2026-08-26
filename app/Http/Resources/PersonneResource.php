@@ -33,6 +33,7 @@ class PersonneResource extends JsonResource
                 'type' => $piece->type,
                 'numero' => $piece->numero,
             ])),
+            'documents' => $this->whenLoaded('documents', fn () => DocumentResource::collection($this->documents)),
         ];
     }
 }

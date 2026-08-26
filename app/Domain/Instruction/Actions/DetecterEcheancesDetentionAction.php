@@ -2,6 +2,7 @@
 
 namespace App\Domain\Instruction\Actions;
 
+use App\Domain\Alertes\Actions\CreerAlerteAction;
 use App\Domain\Audit\AuditService;
 use App\Domain\Instruction\Models\MesureSurete;
 use Carbon\CarbonInterface;
@@ -13,7 +14,9 @@ use Illuminate\Support\Collection;
  * priorité absolue » — le niveau `depassement` domine donc toute autre
  * alerte du système (voir aussi DetecterEcheancesGardeAVueAction, dont
  * cette classe reprend la structure pour le même type de moteur appliqué
- * à un autre acte).
+ * à un autre acte). Routée vers le juge d'instruction affecté au dossier ;
+ * une mesure dont le dossier n'a pas encore de juge affecté n'a personne à
+ * alerter — elle reste journaliée, sans destinataire.
  */
 class DetecterEcheancesDetentionAction
 {
@@ -21,8 +24,15 @@ class DetecterEcheancesDetentionAction
 
     private const SEUIL_AVERTISSEMENT_JOURS = 3;
 
+    private const LIBELLES_NIVEAU = [
+        'information' => 'approche de l\'échéance',
+        'avertissement' => 'échéance imminente',
+        'depassement' => 'échéance dépassée — priorité absolue',
+    ];
+
     public function __construct(
         private readonly AuditService $audit,
+        private readonly CreerAlerteAction $creerAlerte,
     ) {}
 
     /**
@@ -35,6 +45,7 @@ class DetecterEcheancesDetentionAction
         return MesureSurete::query()
             ->where('type', 'detention_provisoire')
             ->where('statut', 'en_cours')
+            ->with('dossierInstruction.jugeInstruction')
             ->get()
             ->map(function (MesureSurete $mesure) use ($maintenant) {
                 $niveau = $this->qualifier($mesure, $maintenant);
@@ -47,6 +58,12 @@ class DetecterEcheancesDetentionAction
                 $this->audit->consigner('instruction.alerte_detention', auditable: $alerte['mesure'], payloadSupplementaire: [
                     'niveau' => $alerte['niveau'],
                 ]);
+
+                $juge = $alerte['mesure']->dossierInstruction->jugeInstruction;
+                if ($juge !== null) {
+                    $message = "Détention provisoire #{$alerte['mesure']->id} — ".self::LIBELLES_NIVEAU[$alerte['niveau']];
+                    $this->creerAlerte->executer($alerte['mesure'], 'detention_echeance', $alerte['niveau'], $message, $juge);
+                }
             });
     }
 

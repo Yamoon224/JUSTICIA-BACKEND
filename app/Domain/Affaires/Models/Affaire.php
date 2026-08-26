@@ -4,6 +4,7 @@ namespace App\Domain\Affaires\Models;
 
 use App\Domain\Audiencement\Models\DossierAudiencement;
 use App\Domain\Contracts\Auditable;
+use App\Domain\Documents\Models\Document;
 use App\Domain\Instruction\Models\DossierInstruction;
 use App\Domain\Parquet\Models\DossierParquet;
 use App\Domain\Personnes\Models\Personne;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
  * Dossier d'affaire (§6.3) : numéro unique conservé de bout en bout. Le
@@ -100,6 +102,16 @@ class Affaire extends Model implements Auditable
     public function scelles(): HasMany
     {
         return $this->hasMany(Scelle::class);
+    }
+
+    /**
+     * Pièces versées au dossier, cotées automatiquement (§6.3, §9).
+     *
+     * @return MorphMany<Document, $this>
+     */
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 
     /**
