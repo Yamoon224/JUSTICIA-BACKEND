@@ -7,6 +7,7 @@ use App\Models\EtablissementPenitentiaire;
 use App\Models\Infraction;
 use App\Models\Juridiction;
 use App\Models\MotifClassement;
+use App\Models\Ressort;
 use App\Models\Unite;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -107,6 +108,16 @@ class ReferentielController extends Controller
             ->get(['id', 'code', 'nom', 'ressort_id', 'capacite']);
 
         return response()->json($etablissements);
+    }
+
+    /**
+     * Ressorts territoriaux (§6.13), pour le sélecteur du tableau de bord
+     * statistiques (§6.11-6.12) — seul un administrateur peut y choisir un
+     * ressort autre que le sien (App\Http\Controllers\Api\V1\Statistiques\TableauDeBordController).
+     */
+    public function ressorts(): JsonResponse
+    {
+        return response()->json(Ressort::query()->orderBy('nom')->get(['id', 'code', 'nom', 'type', 'parent_id']));
     }
 
     /**

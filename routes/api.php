@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Instruction\MesureSureteController;
 use App\Http\Controllers\Api\V1\Parquet\DossierParquetController;
 use App\Http\Controllers\Api\V1\Personnes\PersonneController;
 use App\Http\Controllers\Api\V1\Referentiels\ReferentielController;
+use App\Http\Controllers\Api\V1\Statistiques\TableauDeBordController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,6 +53,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/referentiels/greffiers', [ReferentielController::class, 'greffiers'])->name('referentiels.greffiers');
         Route::get('/referentiels/juridictions', [ReferentielController::class, 'juridictions'])->name('referentiels.juridictions');
         Route::get('/referentiels/etablissements-penitentiaires', [ReferentielController::class, 'etablissementsPenitentiaires'])->name('referentiels.etablissements-penitentiaires');
+        Route::get('/referentiels/ressorts', [ReferentielController::class, 'ressorts'])->name('referentiels.ressorts');
 
         // §6.2 — Identification des personnes.
         Route::get('/personnes', [PersonneController::class, 'index'])->name('personnes.index');
@@ -144,5 +146,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/casier/personnes/{personne}/consultations', [ConsultationController::class, 'index'])->name('casier.personnes.consultations');
         Route::post('/casier/condamnations/{condamnation}/rehabiliter', [CondamnationController::class, 'rehabiliter'])->name('casier.condamnations.rehabiliter');
         Route::post('/casier/condamnations/{condamnation}/amnistier', [CondamnationController::class, 'amnistier'])->name('casier.condamnations.amnistier');
+
+        // §6.11, §6.12 — Statistiques et pilotage.
+        Route::get('/statistiques/tableau-de-bord', [TableauDeBordController::class, 'afficher'])->name('statistiques.tableau-de-bord');
     });
 });

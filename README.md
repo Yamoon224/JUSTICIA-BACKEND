@@ -53,7 +53,14 @@ Sanctum (auth par token) · spatie/laravel-permission (rôles/habilitations).
   contrôlée (`casier.consulter_nominatif`) et journalisée — registre
   national, seul module du socle sans cloisonnement par ressort — voir
   `app/Domain/Casier`.
-- ⏳ Phases 8 et 9 (Statistiques, Recette, Pilote) : à venir.
+- ✅ **Phase 8 — Statistiques et pilotage** (§6.11-6.12) : tableau de bord
+  agrégé (affaires par statut, garde à vue/détention provisoire en cours
+  et en échéance dépassée, orientations du parquet, avancement de
+  l'audiencement et de l'exécution, casier), délais moyens de traitement,
+  cloisonné par ressort comme le reste du socle (agrégat national réservé
+  à `administration.gerer`) — lecture seule, aucun état propre — voir
+  `app/Domain/Statistiques`.
+- ⏳ Phase 9 (Recette, Pilote) : à venir.
 
 ## Démarrage
 
