@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\V1\Audiencement\DecisionController;
 use App\Http\Controllers\Api\V1\Audiencement\DossierAudiencementController;
 use App\Http\Controllers\Api\V1\Audiencement\RecoursController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Casier\BulletinController;
+use App\Http\Controllers\Api\V1\Casier\CondamnationController;
+use App\Http\Controllers\Api\V1\Casier\ConsultationController;
 use App\Http\Controllers\Api\V1\Execution\AmendeController;
 use App\Http\Controllers\Api\V1\Execution\DossierExecutionController;
 use App\Http\Controllers\Api\V1\Execution\EcrouController;
@@ -30,7 +33,6 @@ use Illuminate\Support\Facades\Route;
 |
 | Consommée exclusivement par les interfaces « Web » (NextJS). Chaque
 | module métier enregistre ses routes ici sous le même préfixe versionné.
-| Reste à venir (Phase 7+) : casier judiciaire.
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -134,5 +136,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/execution/amendes/{amende}/recouvree', [AmendeController::class, 'marquerRecouvree'])->name('execution.amendes.recouvree');
         Route::post('/execution/tig/{tig}/heures', [TigController::class, 'enregistrerHeures'])->name('execution.tig.heures');
         Route::post('/execution/mises-a-l-epreuve/{mise}/lever', [MiseALEpreuveController::class, 'lever'])->name('execution.mises-a-l-epreuve.lever');
+
+        // §6.10 — Casier judiciaire. Registre national : pas de préfixe de
+        // ressort dans ces routes (voir App\Policies\CondamnationPolicy).
+        Route::get('/casier/personnes/{personne}/condamnations', [CondamnationController::class, 'index'])->name('casier.personnes.condamnations');
+        Route::post('/casier/personnes/{personne}/bulletin', [BulletinController::class, 'generer'])->name('casier.personnes.bulletin');
+        Route::get('/casier/personnes/{personne}/consultations', [ConsultationController::class, 'index'])->name('casier.personnes.consultations');
+        Route::post('/casier/condamnations/{condamnation}/rehabiliter', [CondamnationController::class, 'rehabiliter'])->name('casier.condamnations.rehabiliter');
+        Route::post('/casier/condamnations/{condamnation}/amnistier', [CondamnationController::class, 'amnistier'])->name('casier.condamnations.amnistier');
     });
 });

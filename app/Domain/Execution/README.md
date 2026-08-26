@@ -48,6 +48,11 @@ Périmètre : cahier des charges §6.9 (Exécution des peines et détention).
   `personne_id` en entrée : la personne est toujours dérivée du dossier
   d'exécution (`$dossier->personne_id`), ce qui élimine par conception
   la classe de bug IDOR rencontrée dans d'autres modules.
+- `MettreAExecutionAction` déclenche dans la même transaction
+  l'inscription au casier judiciaire (§6.10,
+  `App\Domain\Casier\Actions\EnregistrerCondamnationCasierAction`) : c'est
+  le seul point du socle où le caractère définitif d'une condamnation est
+  effectivement vérifié par un acte humain.
 
 **Décisions de périmètre explicites (pas des oublis)** :
 - `detention_provisoire_imputee_jours` est saisi manuellement à l'écrou,
@@ -58,9 +63,7 @@ Périmètre : cahier des charges §6.9 (Exécution des peines et détention).
   pas encore d'infrastructure de génération de documents (PV, minutes
   compris) — capacité transverse à construire plus tard.
 
-**Restant à faire (Phase 7+)** :
-- Alimentation du casier judiciaire à la clôture d'un dossier
-  d'exécution (condamnation définitive exécutée).
+**Restant à faire (Phase 8+)** :
 - Notification effective des parties/établissements au-delà de la trace
   d'audit (§10.1-D).
 - Tableau de bord pénitentiaire (échéances proches, effectifs par

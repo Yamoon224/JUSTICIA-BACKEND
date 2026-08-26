@@ -10,8 +10,9 @@ use App\Models\DelaiLegal;
  * référentiel `delais_legaux`, selon la catégorie la plus grave des
  * infractions retenues sur l'affaire — jamais codée en dur dans une Action
  * métier, pour que les réformes s'intègrent par paramétrage (§11).
- * Partagé entre les modules GardeAVue et Instruction, qui appliquent tous
- * deux ce même principe à des types d'actes différents.
+ * Partagé entre GardeAVue, Instruction et Casier (délai de réhabilitation
+ * de plein droit, §6.10), qui appliquent tous ce même principe à des types
+ * d'actes différents.
  */
 class ResolveurDelaiLegal
 {
@@ -32,11 +33,26 @@ class ResolveurDelaiLegal
         return $this->trouver($typeActe, $affaire)?->duree_jours;
     }
 
+    /**
+     * Variante pour les modules qui ne disposent plus de l'Affaire vivante
+     * mais d'une catégorie d'infraction déjà figée (Casier : la catégorie
+     * est capturée sur la condamnation au moment de son inscription, §6.10).
+     */
+    public function dureeJoursPourCategorie(string $typeActe, ?string $categorie): ?int
+    {
+        return $this->trouverPourCategorie($typeActe, $categorie)?->duree_jours;
+    }
+
     private function trouver(string $typeActe, Affaire $affaire): ?DelaiLegal
     {
         $categories = $affaire->infractions()->pluck('categorie');
         $categorie = collect(self::ORDRE_GRAVITE)->first(fn (string $c) => $categories->contains($c));
 
+        return $this->trouverPourCategorie($typeActe, $categorie);
+    }
+
+    private function trouverPourCategorie(string $typeActe, ?string $categorie): ?DelaiLegal
+    {
         $today = now()->toDateString();
 
         // whereDate() plutôt que where() : une colonne au cast 'date' est

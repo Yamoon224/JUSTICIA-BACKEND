@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // §6.11 : une détention/mesure arrivant à échéance sans décision est
         // signalée « en priorité absolue » — vérification chaque minute.
         $schedule->command('gav:verifier-echeances')->everyMinute()->withoutOverlapping();
+
+        // §6.10, §6.11 : constat des réhabilitations de plein droit — rien
+        // n'y est urgent à la minute près, une vérification quotidienne
+        // suffit.
+        $schedule->command('casier:verifier-rehabilitations')->daily()->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Domain\Affaires\Models\Affaire;
 use App\Domain\Audiencement\Models\DossierAudiencement;
+use App\Domain\Casier\Models\Condamnation;
 use App\Domain\Contracts\Horodatable;
 use App\Domain\Execution\Models\DossierExecution;
 use App\Domain\Instruction\Models\DossierInstruction;
@@ -11,6 +12,7 @@ use App\Domain\Parquet\Models\DossierParquet;
 use App\Domain\Personnes\Models\Personne;
 use App\Domain\Support\HorodatageService;
 use App\Policies\AffairePolicy;
+use App\Policies\CondamnationPolicy;
 use App\Policies\DossierAudiencementPolicy;
 use App\Policies\DossierExecutionPolicy;
 use App\Policies\DossierInstructionPolicy;
@@ -40,6 +42,7 @@ class DomainServiceProvider extends ServiceProvider
         DossierInstruction::class => DossierInstructionPolicy::class,
         DossierAudiencement::class => DossierAudiencementPolicy::class,
         DossierExecution::class => DossierExecutionPolicy::class,
+        Condamnation::class => CondamnationPolicy::class,
     ];
 
     public function register(): void

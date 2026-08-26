@@ -46,7 +46,14 @@ Sanctum (auth par token) · spatie/laravel-permission (rôles/habilitations).
   général (clôture automatique au seuil d'heures), sursis avec mise à
   l'épreuve, moteur d'alertes d'échéance de libération — voir
   `app/Domain/Execution`.
-- ⏳ Phases 7 à 9 (Casier, Statistiques, Recette, Pilote) : à venir.
+- ✅ **Phase 7 — Casier judiciaire** (§6.10) : inscription automatique des
+  condamnations à la mise à exécution, réhabilitation judiciaire et de
+  plein droit (moteur planifié quotidien), amnistie, bulletins B1/B2/B3
+  avec règles de filtrage distinctes, consultation nominative strictement
+  contrôlée (`casier.consulter_nominatif`) et journalisée — registre
+  national, seul module du socle sans cloisonnement par ressort — voir
+  `app/Domain/Casier`.
+- ⏳ Phases 8 et 9 (Statistiques, Recette, Pilote) : à venir.
 
 ## Démarrage
 

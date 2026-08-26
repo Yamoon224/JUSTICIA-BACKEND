@@ -126,5 +126,19 @@ class ReferentielsSeeder extends Seeder
             'duree_jours' => 15,
             'date_entree_vigueur' => $today,
         ]);
+
+        // §6.10 : réhabilitation de plein droit (sans nouvelle condamnation
+        // dans l'intervalle) — valeurs d'exemple à valider par la
+        // chancellerie avant recette, comme les autres délais ci-dessus.
+        collect([
+            ['code' => 'REHAB_CONTRAVENTION', 'categorie_infraction' => 'contravention', 'duree_jours' => 3 * 365],
+            ['code' => 'REHAB_DELIT', 'categorie_infraction' => 'delit', 'duree_jours' => 5 * 365],
+            ['code' => 'REHAB_CRIME', 'categorie_infraction' => 'crime', 'duree_jours' => 10 * 365],
+        ])->each(fn (array $delai) => DelaiLegal::query()->create([
+            ...$delai,
+            'libelle' => "Réhabilitation de plein droit — {$delai['categorie_infraction']}",
+            'type_acte' => 'rehabilitation_plein_droit',
+            'date_entree_vigueur' => $today,
+        ]));
     }
 }
