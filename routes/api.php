@@ -140,7 +140,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // §6.10 — Casier judiciaire. Registre national : pas de préfixe de
         // ressort dans ces routes (voir App\Policies\CondamnationPolicy).
         Route::get('/casier/personnes/{personne}/condamnations', [CondamnationController::class, 'index'])->name('casier.personnes.condamnations');
-        Route::post('/casier/personnes/{personne}/bulletin', [BulletinController::class, 'generer'])->name('casier.personnes.bulletin');
+        Route::get('/casier/personnes/{personne}/bulletin', [BulletinController::class, 'generer'])->name('casier.personnes.bulletin');
         Route::get('/casier/personnes/{personne}/consultations', [ConsultationController::class, 'index'])->name('casier.personnes.consultations');
         Route::post('/casier/condamnations/{condamnation}/rehabiliter', [CondamnationController::class, 'rehabiliter'])->name('casier.condamnations.rehabiliter');
         Route::post('/casier/condamnations/{condamnation}/amnistier', [CondamnationController::class, 'amnistier'])->name('casier.condamnations.amnistier');

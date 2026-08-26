@@ -16,6 +16,7 @@ use Database\Seeders\ReferentielsSeeder;
 use Database\Seeders\RolesEtPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -47,6 +48,18 @@ class CasierTest extends TestCase
         parent::setUp();
         $this->seed(RolesEtPermissionsSeeder::class);
         $this->seed(ReferentielsSeeder::class);
+    }
+
+    /**
+     * La génération d'un bulletin est une consultation : GET avec motif en
+     * paramètre, même idiome que ConsulterPersonneAction (§6.2), journalisée
+     * à chaque appel — jamais un simple POST muet.
+     */
+    private function genererBulletin(int $personneId, string $type, ?string $motif = 'Test'): TestResponse
+    {
+        $query = http_build_query(array_filter(['type' => $type, 'motif' => $motif], fn ($v) => $v !== null));
+
+        return $this->getJson("/api/v1/casier/personnes/{$personneId}/bulletin?{$query}");
     }
 
     /**
@@ -195,12 +208,12 @@ class CasierTest extends TestCase
         // connues, pas consulter librement le casier de n'importe qui.
         $greffier = $this->agent($ressort, 'GREFFE', 'greffe', 'greffier');
         $this->actingAs($greffier)
-            ->postJson("/api/v1/casier/personnes/{$contexte['personneId']}/bulletin", ['type' => 'b1', 'motif' => 'Vérification'])
+            ->genererBulletin($contexte['personneId'], 'b1', 'Vérification')
             ->assertForbidden();
 
         $agentCasier = $this->agent($ressort, 'CASIER', 'casier', 'agent_casier');
         $this->actingAs($agentCasier)
-            ->postJson("/api/v1/casier/personnes/{$contexte['personneId']}/bulletin", ['type' => 'b1', 'motif' => 'Vérification'])
+            ->genererBulletin($contexte['personneId'], 'b1', 'Vérification')
             ->assertOk();
     }
 
@@ -211,7 +224,7 @@ class CasierTest extends TestCase
         $agentCasier = $this->agent($ressort, 'CASIER', 'casier', 'agent_casier');
 
         $this->actingAs($agentCasier)
-            ->postJson("/api/v1/casier/personnes/{$contexte['personneId']}/bulletin", ['type' => 'b1'])
+            ->genererBulletin($contexte['personneId'], 'b1', null)
             ->assertStatus(422);
     }
 
@@ -257,17 +270,17 @@ class CasierTest extends TestCase
         ])->assertOk();
 
         // B1 : tout sauf amnistié → seule la condamnation pour délit reste.
-        $b1 = $this->actingAs($agentCasier)->postJson("/api/v1/casier/personnes/{$personneId}/bulletin", ['type' => 'b1', 'motif' => 'Test'])->json('condamnations');
+        $b1 = $this->actingAs($agentCasier)->genererBulletin($personneId, 'b1')->json('condamnations');
         $this->assertCount(1, $b1);
         $this->assertSame($condamnationDelitId, $b1[0]['id']);
 
         // B2 : exclut en plus les contraventions (même actives) → même résultat ici.
-        $b2 = $this->actingAs($agentCasier)->postJson("/api/v1/casier/personnes/{$personneId}/bulletin", ['type' => 'b2', 'motif' => 'Test'])->json('condamnations');
+        $b2 = $this->actingAs($agentCasier)->genererBulletin($personneId, 'b2')->json('condamnations');
         $this->assertCount(1, $b2);
 
         // B3 : uniquement actif + délit/crime + sans sursis → la
         // condamnation pour délit (sans sursis) reste.
-        $b3 = $this->actingAs($agentCasier)->postJson("/api/v1/casier/personnes/{$personneId}/bulletin", ['type' => 'b3', 'motif' => 'Test'])->json('condamnations');
+        $b3 = $this->actingAs($agentCasier)->genererBulletin($personneId, 'b3')->json('condamnations');
         $this->assertCount(1, $b3);
         $this->assertSame($condamnationDelitId, $b3[0]['id']);
 
@@ -275,13 +288,13 @@ class CasierTest extends TestCase
         // disparaît du B2/B3 mais reste visible au B1.
         $this->actingAs($agentCasier)->postJson("/api/v1/casier/condamnations/{$condamnationDelitId}/rehabiliter")->assertOk();
 
-        $b1Apres = $this->actingAs($agentCasier)->postJson("/api/v1/casier/personnes/{$personneId}/bulletin", ['type' => 'b1', 'motif' => 'Test'])->json('condamnations');
+        $b1Apres = $this->actingAs($agentCasier)->genererBulletin($personneId, 'b1')->json('condamnations');
         $this->assertCount(1, $b1Apres);
 
-        $b2Apres = $this->actingAs($agentCasier)->postJson("/api/v1/casier/personnes/{$personneId}/bulletin", ['type' => 'b2', 'motif' => 'Test'])->json('condamnations');
+        $b2Apres = $this->actingAs($agentCasier)->genererBulletin($personneId, 'b2')->json('condamnations');
         $this->assertCount(0, $b2Apres);
 
-        $b3Apres = $this->actingAs($agentCasier)->postJson("/api/v1/casier/personnes/{$personneId}/bulletin", ['type' => 'b3', 'motif' => 'Test'])->json('condamnations');
+        $b3Apres = $this->actingAs($agentCasier)->genererBulletin($personneId, 'b3')->json('condamnations');
         $this->assertCount(0, $b3Apres);
     }
 
@@ -291,9 +304,9 @@ class CasierTest extends TestCase
         $contexte = $this->obtenirUneCondamnationExecutee($ressort);
         $agentCasier = $this->agent($ressort, 'CASIER', 'casier', 'agent_casier');
 
-        $this->actingAs($agentCasier)->postJson("/api/v1/casier/personnes/{$contexte['personneId']}/bulletin", [
-            'type' => 'b2', 'motif' => 'Recrutement fonction publique',
-        ])->assertOk();
+        $this->actingAs($agentCasier)
+            ->genererBulletin($contexte['personneId'], 'b2', 'Recrutement fonction publique')
+            ->assertOk();
 
         $consultations = $this->actingAs($agentCasier)->getJson("/api/v1/casier/personnes/{$contexte['personneId']}/consultations");
         $consultations->assertOk()->assertJsonCount(1);
