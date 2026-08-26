@@ -23,9 +23,13 @@ class RolesEtPermissionsSeeder extends Seeder
         'procureur' => ['parquet.gerer', 'affaires.consulter', 'personnes.consulter'],
         'juge_instruction' => ['instruction.gerer', 'affaires.consulter', 'personnes.consulter'],
         'juge_audience' => ['audiencement.gerer', 'affaires.consulter'],
-        'greffier' => ['audiencement.gerer', 'casier.gerer', 'affaires.consulter'],
+        // personnes.consulter : gérer ou consulter le casier de quelqu'un
+        // (§6.10) suppose de pouvoir d'abord le rechercher dans le fichier
+        // national des personnes (§6.2) — même besoin que le procureur ou
+        // le juge d'instruction, déjà titulaires de cette permission.
+        'greffier' => ['audiencement.gerer', 'casier.gerer', 'affaires.consulter', 'personnes.consulter'],
         'agent_penitentiaire' => ['execution.gerer'],
-        'agent_casier' => ['casier.gerer', 'casier.consulter_nominatif'],
+        'agent_casier' => ['casier.gerer', 'casier.consulter_nominatif', 'personnes.consulter'],
         'chef_juridiction' => ['statistiques.consulter'],
         'administrateur' => ['administration.gerer', 'habilitations.gerer'],
     ];

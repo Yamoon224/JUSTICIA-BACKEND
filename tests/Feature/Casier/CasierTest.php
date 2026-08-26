@@ -376,4 +376,23 @@ class CasierTest extends TestCase
         $this->assertCount(0, $rehabilitations);
         $this->assertSame('active', $ancienne->fresh()->statut);
     }
+
+    /**
+     * Verrou de non-régression : gérer ou consulter le casier de quelqu'un
+     * suppose de pouvoir d'abord le rechercher dans le fichier national des
+     * personnes (§6.2) — un agent casier ou un greffier sans
+     * personnes.consulter se retrouverait bloqué avant même d'atteindre le
+     * casier, malgré ses habilitations casier.* correctes.
+     */
+    public function test_agent_casier_et_greffier_peuvent_rechercher_une_personne(): void
+    {
+        $ressort = $this->ressort();
+        $this->obtenirUneCondamnationExecutee($ressort);
+
+        $agentCasier = $this->agent($ressort, 'CASIER', 'casier', 'agent_casier');
+        $this->actingAs($agentCasier)->getJson('/api/v1/personnes?nom=Test')->assertOk();
+
+        $greffier = $this->agent($ressort, 'GREFFE', 'greffe', 'greffier');
+        $this->actingAs($greffier)->getJson('/api/v1/personnes?nom=Test')->assertOk();
+    }
 }
