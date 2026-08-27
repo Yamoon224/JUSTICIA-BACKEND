@@ -31,17 +31,35 @@ class RolesEtPermissionsSeeder extends Seeder
         'agent_penitentiaire' => ['execution.gerer'],
         'agent_casier' => ['casier.gerer', 'casier.consulter_nominatif', 'personnes.consulter'],
         'chef_juridiction' => ['statistiques.consulter'],
-        'administrateur' => ['administration.gerer', 'habilitations.gerer'],
     ];
+
+    /**
+     * Permissions qui n'appartiennent à aucun rôle métier opérationnel —
+     * seul l'administrateur les détient.
+     *
+     * @var list<string>
+     */
+    private const PERMISSIONS_ADMINISTRATIVES = ['administration.gerer', 'habilitations.gerer'];
 
     public function run(): void
     {
-        $permissions = collect(self::ROLES_PERMISSIONS)->flatten()->unique();
+        $permissions = collect(self::ROLES_PERMISSIONS)
+            ->flatten()
+            ->merge(self::PERMISSIONS_ADMINISTRATIVES)
+            ->unique();
 
         $permissions->each(fn (string $permission) => Permission::findOrCreate($permission));
 
         foreach (self::ROLES_PERMISSIONS as $role => $permissionNames) {
             Role::findOrCreate($role)->syncPermissions($permissionNames);
         }
+
+        // §4, §6.13 : l'administrateur est un superutilisateur — toutes les
+        // permissions existantes, opérationnelles comme administratives, pas
+        // une liste figée qui dériverait au fil des modules ajoutés. Le
+        // cloisonnement par ressort ne s'applique jamais à lui non plus : les
+        // Policies (AffairePolicy, DossierParquetPolicy, ...) contournent déjà
+        // toutes `memeRessort()` dès que l'agent détient `administration.gerer`.
+        Role::findOrCreate('administrateur')->syncPermissions($permissions->all());
     }
 }
