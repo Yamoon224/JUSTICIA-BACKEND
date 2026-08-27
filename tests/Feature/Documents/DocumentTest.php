@@ -154,6 +154,46 @@ class DocumentTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'documents.consultation']);
     }
 
+    /**
+     * CONSTAT DE SÉCURITÉ (revue du 2026-08-27) : le fichier des personnes
+     * n'est pas cloisonné par ressort (§6.2) — la seule contrepartie est que
+     * toute consultation soit motivée et journalisée, comme pour la fiche
+     * personne elle-même (ConsulterPersonneRequest) ou un bulletin du
+     * casier (GenererBulletinRequest). Le téléchargement d'un document lié
+     * à une personne doit donc exiger un motif au même titre.
+     */
+    public function test_le_telechargement_d_un_document_de_personne_exige_un_motif(): void
+    {
+        $ressort = $this->ressort();
+        $opj = $this->opj($ressort);
+        $personne = $this->personne();
+
+        $documentId = $this->actingAs($opj)->postJson("/api/v1/personnes/{$personne->id}/documents", [
+            'fichier' => UploadedFile::fake()->image('photo.jpg'), 'categorie' => 'photo',
+        ])->json('id');
+
+        $this->actingAs($opj)->getJson("/api/v1/documents/{$documentId}")->assertStatus(422);
+        $this->actingAs($opj)->getJson("/api/v1/documents/{$documentId}?motif=Verification")->assertOk();
+    }
+
+    /**
+     * À la différence d'une personne, une affaire est déjà cloisonnée par
+     * ressort (AffairePolicy) : le motif reste une aide au contexte, pas la
+     * seule contrepartie d'accès — il n'est donc pas rendu obligatoire ici.
+     */
+    public function test_le_telechargement_d_un_document_d_affaire_ne_requiert_pas_de_motif(): void
+    {
+        $ressort = $this->ressort();
+        $opj = $this->opj($ressort);
+        $affaire = $this->affaire($opj);
+
+        $documentId = $this->actingAs($opj)->postJson("/api/v1/affaires/{$affaire->id}/documents", [
+            'fichier' => UploadedFile::fake()->image('scan.jpg'),
+        ])->json('id');
+
+        $this->actingAs($opj)->getJson("/api/v1/documents/{$documentId}")->assertOk();
+    }
+
     public function test_une_alteration_du_fichier_chiffre_est_detectee_a_la_lecture(): void
     {
         $ressort = $this->ressort();
@@ -171,7 +211,7 @@ class DocumentTest extends TestCase
         // au hash enregistré au versement.
         Storage::disk('pieces')->put($document->chemin_stockage, Crypt::encryptString($dechiffre.'ALTERE'));
 
-        $this->actingAs($opj)->get("/api/v1/documents/{$documentId}")->assertStatus(500);
+        $this->actingAs($opj)->get("/api/v1/documents/{$documentId}?motif=Verification")->assertStatus(500);
     }
 
     public function test_un_type_de_fichier_non_autorise_est_rejete(): void

@@ -171,6 +171,40 @@ class AdministrationTest extends TestCase
             ->assertOk()->assertJsonPath('roles', ['greffier']);
     }
 
+    /**
+     * CONSTAT DE SÉCURITÉ (revue du 2026-08-27) : un titulaire de la seule
+     * `habilitations.gerer` pouvait s'auto-accorder (ou accorder à un
+     * complice) le rôle `administrateur`, qui porte en plus
+     * `administration.gerer` — élévation de privilèges immédiate. Corrigé
+     * dans AssignerRolesAction : on ne peut jamais accorder plus de
+     * permissions qu'on n'en détient soi-même.
+     */
+    public function test_on_ne_peut_pas_accorder_un_role_dont_les_permissions_depassent_les_siennes(): void
+    {
+        $agentLimite = $this->opj();
+        $agentLimite->syncRoles([]);
+        $agentLimite->givePermissionTo('habilitations.gerer');
+        $cible = $this->creerCompte($this->administrateur());
+
+        // Tentative d'auto-élévation : s'accorder à soi-même le rôle
+        // administrateur, qui porte administration.gerer en plus.
+        $this->actingAs($agentLimite)
+            ->postJson("/api/v1/administration/agents/{$agentLimite->id}/roles", ['roles' => ['administrateur']])
+            ->assertStatus(500);
+        $this->assertTrue($agentLimite->fresh()->hasRole('administrateur') === false);
+
+        // Même chose au bénéfice d'un tiers/complice.
+        $this->actingAs($agentLimite)
+            ->postJson("/api/v1/administration/agents/{$cible}/roles", ['roles' => ['administrateur']])
+            ->assertStatus(500);
+
+        // Un rôle dont les permissions sont un sous-ensemble de celles déjà
+        // détenues reste accordable normalement.
+        $this->actingAs($agentLimite)
+            ->postJson("/api/v1/administration/agents/{$cible}/roles", ['roles' => []])
+            ->assertOk();
+    }
+
     public function test_un_role_inconnu_est_rejete(): void
     {
         $admin = $this->administrateur();

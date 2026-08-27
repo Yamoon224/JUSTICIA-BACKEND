@@ -9,13 +9,13 @@ use App\Domain\Documents\Actions\VerserDocumentAction;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Personnes\Models\Personne;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Documents\TelechargerDocumentRequest;
 use App\Http\Requests\Documents\VerserDocumentAffaireRequest;
 use App\Http\Requests\Documents\VerserDocumentPersonneRequest;
 use App\Http\Requests\Documents\VerserDocumentScelleRequest;
 use App\Http\Resources\DocumentResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
@@ -62,7 +62,7 @@ class DocumentController extends Controller
      * l'habilitation sur le dossier porteur et de l'intégrité du fichier
      * (RecupererDocumentAction) — jamais d'accès direct au disque `pieces`.
      */
-    public function telecharger(Request $request, Document $document, RecupererDocumentAction $action): Response
+    public function telecharger(TelechargerDocumentRequest $request, Document $document, RecupererDocumentAction $action): Response
     {
         Gate::authorize('view', $this->cibleAutorisation($document));
 
