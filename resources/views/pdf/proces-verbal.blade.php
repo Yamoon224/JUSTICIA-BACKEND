@@ -24,9 +24,10 @@
 
 {{--
     $pv->contenu est du HTML produit par l'éditeur enrichi du frontend
-    (schéma Tiptap/ProseMirror restreint — voir web/src/components/rich-text-editor.tsx :
-    paragraphes, gras/italique/souligné/barré, listes, citation, alignement
-    uniquement, jamais d'image ni de lien). C'est ce jeu de balises borné qui
+    (rich-text-editor.tsx), nettoyé par App\Domain\Support\TexteEnrichiSanitizer
+    (HTMLPurifier) à l'écriture — RedigerProcesVerbalRequest et
+    RectifierProcesVerbalRequest — avant tout enregistrement. C'est ce
+    nettoyage à l'écriture, pas la seule provenance supposée du HTML, qui
     rend cet affichage non échappé sûr.
 --}}
 <div class="contenu">{!! $pv->contenu !!}</div>

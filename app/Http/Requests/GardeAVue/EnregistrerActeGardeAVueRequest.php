@@ -2,12 +2,18 @@
 
 namespace App\Http\Requests\GardeAVue;
 
+use App\Domain\Support\TexteEnrichiSanitizer;
 use App\Http\Requests\GardeAVue\Concerns\AutoriseSurRessortDeLaMesure;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EnregistrerActeGardeAVueRequest extends FormRequest
 {
     use AutoriseSurRessortDeLaMesure;
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['notes' => TexteEnrichiSanitizer::nettoyer($this->input('notes'))]);
+    }
 
     /**
      * @return array<string, mixed>

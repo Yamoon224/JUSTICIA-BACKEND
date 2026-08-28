@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Affaires;
 
+use App\Domain\Support\TexteEnrichiSanitizer;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RedigerProcesVerbalRequest extends FormRequest
@@ -9,6 +10,11 @@ class RedigerProcesVerbalRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('affaire'));
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['contenu' => TexteEnrichiSanitizer::nettoyer($this->input('contenu'))]);
     }
 
     /**
