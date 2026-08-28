@@ -22,5 +22,12 @@
     </tr>
 </table>
 
-<div class="contenu">{{ $pv->contenu }}</div>
+{{--
+    $pv->contenu est du HTML produit par l'éditeur enrichi du frontend
+    (schéma Tiptap/ProseMirror restreint — voir web/src/components/rich-text-editor.tsx :
+    paragraphes, gras/italique/souligné/barré, listes, citation, alignement
+    uniquement, jamais d'image ni de lien). C'est ce jeu de balises borné qui
+    rend cet affichage non échappé sûr.
+--}}
+<div class="contenu">{!! $pv->contenu !!}</div>
 @endsection
